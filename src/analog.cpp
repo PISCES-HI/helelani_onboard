@@ -1,96 +1,32 @@
 #include <ros/console.h>
-
-#include "dln/dln_generic.h"
-#include "dln/dln_adc.h"
+#include <fcntl.h>
 
 #include "analog.h"
 
-void init_analog(HDLN handle) {
-    DLN_RESULT result;
-
-    // Get port count
-    uint8_t port_count;
-    result = DlnAdcGetPortCount(handle, &port_count);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to get ADC port count: %d", result);
-    }
-    ROS_INFO("ADC ports: %d", int(port_count));
-
-    // Get channel count
-    uint8_t channel_count;
-    result = DlnAdcGetChannelCount(handle, 0, &channel_count);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to get ADC channel count: %d", result);
-    }
-    ROS_INFO("ADC channels: %d", int(channel_count));
-
-    DlnAdcDisable(handle, 0);
-
-    result = DlnAdcSetResolution(handle, 0, DLN_ADC_RESOLUTION_10BIT);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to set ADC port 0 resolution: %d", result);
-    }
-
-    // Enable port 0 with channel 0
-    result = DlnAdcChannelEnable(handle, 0, 0);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 0: %d", result);
-    }
-    result = DlnAdcChannelEnable(handle, 0, 1);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 1: %d", result);
-    }
-    DlnAdcChannelEnable(handle, 0, 2);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 2: %d", result);
-    }
-    DlnAdcChannelEnable(handle, 0, 3);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 3: %d", result);
-    }
-    DlnAdcChannelEnable(handle, 0, 4);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 4: %d", result);
-    }
-    DlnAdcChannelEnable(handle, 0, 5);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 5: %d", result);
-    }
-    DlnAdcChannelEnable(handle, 0, 6);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 6: %d", result);
-    }
-    DlnAdcChannelEnable(handle, 0, 7);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("Failed to enable channel port 7: %d", result);
-    }
-
-    // Enable port 0
-    uint16_t conflict;
-    result = DlnAdcEnable(handle, 0, &conflict);
-    if (DLN_FAILED(result)) {
-        ROS_ERROR("DlnAdcEnable() port 0 error ", result);
-        return;
+IIOAnalogInterface::IIOAnalogInterface(const std::string& root)
+{
+    char path_buf[512];
+    for (int i=0 ; i<8 ; ++i) {
+        snprintf(path_buf, 512, "%s/in_voltage%d_raw", root.c_str(), i);
+        m_fds[i] = open(path_buf, O_RDONLY);
     }
 }
 
-void cleanup_analog(HDLN handle) {
-    DlnAdcDisable(handle, 0);
-    DlnAdcDisable(handle, 1);
-    DlnAdcDisable(handle, 2);
-    DlnAdcDisable(handle, 3);
-    DlnAdcDisable(handle, 4);
-    DlnAdcDisable(handle, 5);
-    DlnAdcDisable(handle, 6);
-    DlnAdcDisable(handle, 7);
-    DlnAdcChannelDisable(handle, 0, 0);
-    DlnAdcChannelDisable(handle, 0, 1);
-    DlnAdcChannelDisable(handle, 0, 2);
-    DlnAdcChannelDisable(handle, 0, 3);
-    DlnAdcChannelDisable(handle, 0, 4);
-    DlnAdcChannelDisable(handle, 0, 5);
-    DlnAdcChannelDisable(handle, 0, 6);
-    DlnAdcChannelDisable(handle, 0, 7);
+IIOAnalogInterface::~IIOAnalogInterface()
+{
+    for (int i=0 ; i<8 ; ++i)
+        close(m_fds[i]);
+}
+
+int IIOAnalogInterface::GetChannelValue(int chan) const
+{
+    if (chan > 7)
+        return 0;
+    char buf[16];
+    ssize_t bytes_read = read(m_fds[chan], buf, 16);
+    if (bytes_read <= 0)
+        return 0;
+    return atoi(buf);
 }
 
 float read_voltage(const uint16_t analog_reading, const float r1, const float r2) {

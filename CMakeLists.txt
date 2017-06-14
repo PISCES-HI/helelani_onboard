@@ -22,14 +22,18 @@ catkin_package(
 ## Build ##
 ###########
 
+set(WORKSPACE_INCLUDES "")
+foreach(f ${CATKIN_WORKSPACES})
+  list(APPEND WORKSPACE_INCLUDES "${f}/include")
+endforeach(f)
 include_directories(src
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-                    ${CATKIN_WORKSPACES}/include
-                    thirdparty/include)
+                    ${WORKSPACE_INCLUDES})
 
 add_executable(${PROJECT_NAME}_telemetry_node
                src/TelemetryNode.cpp
+               src/DlnFinders.cpp src/DlnFinders.h
                src/Hmc5883lDriver.cpp src/Hmc5883lDriver.h
                src/AdxlDriver.cpp src/AdxlDriver.h
                src/i2c.cpp src/i2c.h
@@ -47,7 +51,7 @@ add_dependencies(${PROJECT_NAME}_telemetry_node ${${PROJECT_NAME}_EXPORTED_TARGE
 add_dependencies(${PROJECT_NAME}_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_telemetry_node ${catkin_LIBRARIES} dln)
+target_link_libraries(${PROJECT_NAME}_telemetry_node ${catkin_LIBRARIES} udev)
 target_link_libraries(${PROJECT_NAME}_navigation_node ${catkin_LIBRARIES})
 
 #############

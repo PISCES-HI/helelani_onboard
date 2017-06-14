@@ -1,13 +1,11 @@
 #ifndef HMC5883LDRIVER_H
 #define HMC5883LDRIVER_H
 
-#include "dln/dln_generic.h"
-
 #define HMC5883L_ADDRESS            0x1E // this device only has one address
 
 class Hmc5883lDriver {
 public:
-    Hmc5883lDriver(HDLN handle, uint8_t addr = HMC5883L_ADDRESS);
+    Hmc5883lDriver(I2CInterface& interface);
 
     void initialize();
     bool testConnection();
@@ -44,18 +42,9 @@ public:
     uint8_t getIDC();
 
 private:
-    HDLN _handle;
-    uint8_t _i2c_addr;
+    I2CInterface& _handle;
     uint8_t mode;
     uint8_t _buffer[6];
-
-    uint8_t read_byte(uint8_t i2c_addr, uint8_t reg_addr);
-    void read_bytes(uint8_t i2c_addr, uint8_t reg_addr, uint8_t length, uint8_t* data);
-    uint8_t read_bit(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_num);
-    uint8_t read_bits(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_start, uint8_t num_bits);
-    void write_byte(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data);
-    void write_bit(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_num, uint8_t data);
-    void write_bits(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_start, uint8_t length, uint8_t data);
 };
 
 #endif // HMC5883LDRIVER_H

@@ -1,7 +1,7 @@
 #ifndef ADXLDRIVER_H
 #define ADXLDRIVER_H
 
-#include "dln/dln_generic.h"
+#include "i2c.h"
 
 #define ADXL345_ADDRESS_ALT_LOW 0x53 // alt address pin low (GND)
 #define ADXL345_ADDRESS_ALT_HIGH 0x1D // alt address pin high (VCC)
@@ -9,7 +9,7 @@
 
 class AdxlDriver {
 public:
-    AdxlDriver(HDLN handle, uint8_t addr = ADXL345_DEFAULT_ADDRESS);
+    AdxlDriver(I2CInterface& interface);
 
     void initialize();
     bool testConnection();
@@ -197,17 +197,8 @@ public:
     uint8_t getFIFOLength();
 
 private:
-    HDLN _handle;
-    uint8_t _i2c_addr;
+    I2CInterface& _handle;
     uint8_t _buffer[6];
-
-    uint8_t read_byte(uint8_t i2c_addr, uint8_t reg_addr);
-    void read_bytes(uint8_t i2c_addr, uint8_t reg_addr, uint8_t length, uint8_t* data);
-    uint8_t read_bit(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_num);
-    uint8_t read_bits(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_start, uint8_t num_bits);
-    void write_byte(uint8_t i2c_addr, uint8_t reg_addr, uint8_t data);
-    void write_bit(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_num, uint8_t data);
-    void write_bits(uint8_t i2c_addr, uint8_t reg_addr, uint8_t bit_start, uint8_t length, uint8_t data);
 };
 
 #endif // ADXLDRIVER_H
