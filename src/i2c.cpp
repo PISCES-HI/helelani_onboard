@@ -5,9 +5,13 @@
 
 #include "i2c.h"
 
-I2CInterface::I2CInterface(int fd, int addr)
-: m_fd(fd)
+I2CInterface::I2CInterface(const std::string& path, int addr)
 {
+    m_fd = open(path.c_str(), O_RDWR);
+    if (!m_fd) {
+        ROS_ERROR("Unable to open %s: %s", path.c_str(), strerror(errno));
+        return;
+    }
     if (ioctl(m_fd, I2C_SLAVE, addr) < 0)
         ROS_ERROR("Unable to ioctl I2C with address %d %s", addr, strerror(errno));
 }
@@ -17,7 +21,7 @@ I2CInterface::~I2CInterface()
     close(m_fd);
 }
 
-int I2CInterface::read(char* buf, int len) const
+int I2CInterface::read(unsigned len, uint8_t* buf) const
 {
     int ret = ::read(m_fd, buf, len);
     if (ret < 0) {
@@ -27,7 +31,7 @@ int I2CInterface::read(char* buf, int len) const
     return ret;
 }
 
-int I2CInterface::write(const char* buf, int len) const
+int I2CInterface::write(unsigned len, const uint8_t* buf) const
 {
     int ret = ::write(m_fd, buf, len);
     if (ret < 0) {
@@ -37,72 +41,72 @@ int I2CInterface::write(const char* buf, int len) const
     return ret;
 }
 
-int I2CInterface::readSmbusByte(uint8_t command) const
+int I2CInterface::readByte(uint8_t command) const
 {
-    __s32 res = i2c_smbus_read_byte_data(m_fd, command);
-    if (res == -1) {
-        ROS_ERROR("Unable to read byte with I2C %s", strerror(errno));
+    if (write(1, &command) < 0)
         return -1;
-    }
+    uint8_t res;
+    if (read(1, &res) < 0)
+        return -1;
     return res;
 }
 
-int I2CInterface::writeSmbusByte(uint8_t command, uint8_t byte) const
+int I2CInterface::writeByte(uint8_t command, uint8_t byte) const
 {
-    if (i2c_smbus_write_byte_data(m_fd, command, byte)) {
-        ROS_ERROR("Unable to write byte with I2C %s", strerror(errno));
+    uint8_t buf[2] = {command, byte};
+    if (write(2, buf) < 0)
         return -1;
-    }
     return 0;
 }
 
-int I2CInterface::readSmbusBytes(uint8_t command, int len, uint8_t* bytes) const
+int I2CInterface::readBytes(uint8_t command, unsigned len, uint8_t* bytes) const
 {
-    if (i2c_smbus_read_block_data(m_fd, command, bytes)) {
-        ROS_ERROR("Unable to read bytes with I2C %s", strerror(errno));
+    if (write(1, &command) < 0)
         return -1;
-    }
+    return read(len, bytes);
+}
+
+int I2CInterface::writeBytes(uint8_t command, unsigned len, const uint8_t* bytes) const
+{
+    if (len > 32)
+        len = 32;
+    uint8_t buf[33];
+    buf[0] = command;
+    memcpy(buf+1, bytes, len);
+    if (write(len+1, buf) < 0)
+        return -1;
     return 0;
 }
 
-int I2CInterface::writeSmbusBytes(uint8_t command, int len, const uint8_t* bytes) const
+int I2CInterface::readBit(uint8_t command, uint8_t bit) const
 {
-    if (i2c_smbus_write_block_data(m_fd, command, len, bytes)) {
-        ROS_ERROR("Unable to write bytes with I2C %s", strerror(errno));
-        return -1;
-    }
-    return 0;
-}
-
-int I2CInterface::readSmbusBit(uint8_t command, uint8_t bit) const
-{
-    int b = readSmbusByte(command);
+    int b = readByte(command);
     if (b == -1)
         return -1;
     return b & (1 << bit);
 }
 
-int I2CInterface::writeSmbusBit(uint8_t command, uint8_t bit, bool value) const
+int I2CInterface::writeBit(uint8_t command, uint8_t bit, bool value) const
 {
-    int b = readSmbusByte(command);
+    int b = readByte(command);
     if (b == -1)
         return -1;
     b = value ? (b | (1 << bit)) : (b & ~(1 << bit));
-    return writeSmbusByte(command, b);
+    return writeByte(command, b);
 }
 
-int I2CInterface::readSmbusBits(uint8_t command, uint8_t bit, uint8_t numBits) const
+int I2CInterface::readBits(uint8_t command, uint8_t bit, uint8_t numBits) const
 {
-    int b = readSmbusByte(command);
+    int b = readByte(command);
     if (b == -1)
         return -1;
     uint8_t mask = ((1 << numBits) - 1) << (bit - numBits + 1);
     return (b & mask) >> (bit - numBits + 1);
 }
 
-int I2CInterface::writeSmbusBits(uint8_t command, uint8_t bit, uint8_t numBits, uint8_t data) const
+int I2CInterface::writeBits(uint8_t command, uint8_t bit, uint8_t numBits, uint8_t data) const
 {
-    int b = readSmbusByte(command);
+    int b = readByte(command);
     if (b == -1)
         return -1;
 
@@ -112,5 +116,5 @@ int I2CInterface::writeSmbusBits(uint8_t command, uint8_t bit, uint8_t numBits, 
     b &= ~(mask); // zero all important bits in existing byte
     b |= data; // combine data with existing byte
 
-    return writeSmbusByte(command, b);
+    return writeByte(command, b);
 }

@@ -36,8 +36,11 @@ add_executable(${PROJECT_NAME}_telemetry_node
                src/DlnFinders.cpp src/DlnFinders.h
                src/Hmc5883lDriver.cpp src/Hmc5883lDriver.h
                src/AdxlDriver.cpp src/AdxlDriver.h
+               src/Bmp085Driver.cpp src/Bmp085Driver.h
                src/i2c.cpp src/i2c.h
-               src/analog.cpp src/analog.h)
+               src/analog.cpp src/analog.h
+               src/minmea.cpp src/minmea.h
+               src/GPSReader.cpp src/GPSReader.h)
 
 add_executable(${PROJECT_NAME}_navigation_node
               src/NavigationNode.cpp)

@@ -138,7 +138,7 @@ AdxlDriver::AdxlDriver(I2CInterface& interface)
  * less demanding mode of operation.
  */
 void AdxlDriver::initialize() {
-    _handle.writeSmbusByte(ADXL345_RA_POWER_CTL, 0); // reset all power settings
+    _handle.writeByte(ADXL345_RA_POWER_CTL, 0); // reset all power settings
     setAutoSleepEnabled(true);
     setMeasureEnabled(true);
 }
@@ -159,7 +159,7 @@ bool AdxlDriver::testConnection() {
  * @see ADXL345_RA_DEVID
  */
 uint8_t AdxlDriver::getDeviceID() {
-    return _handle.readSmbusByte(ADXL345_RA_DEVID);
+    return _handle.readByte(ADXL345_RA_DEVID);
 }
 
 // THRESH_TAP register
@@ -174,7 +174,7 @@ uint8_t AdxlDriver::getDeviceID() {
  * @see ADXL345_RA_THRESH_TAP
  */
 uint8_t AdxlDriver::getTapThreshold() {
-    return _handle.readSmbusByte(ADXL345_RA_THRESH_TAP);
+    return _handle.readByte(ADXL345_RA_THRESH_TAP);
 }
 /** Set tap threshold.
   * @param threshold Tap magnitude threshold (scaled at 62.5 mg/LSB)
@@ -182,7 +182,7 @@ uint8_t AdxlDriver::getTapThreshold() {
   * @see getTapThreshold()
   */
 void AdxlDriver::setTapThreshold(uint8_t threshold) {
-    _handle.writeSmbusByte(ADXL345_RA_THRESH_TAP, threshold);
+    _handle.writeByte(ADXL345_RA_THRESH_TAP, threshold);
 }
 
 // OFS* registers
@@ -203,7 +203,7 @@ void AdxlDriver::setTapThreshold(uint8_t threshold) {
  * @see ADXL345_RA_OFSZ
  */
 void AdxlDriver::getOffset(int8_t* x, int8_t* y, int8_t* z) {
-    _handle.readSmbusBytes(ADXL345_RA_OFSX, 3, _buffer);
+    _handle.readBytes(ADXL345_RA_OFSX, 3, _buffer);
     *x = _buffer[0];
     *y = _buffer[1];
     *z = _buffer[2];
@@ -218,9 +218,9 @@ void AdxlDriver::getOffset(int8_t* x, int8_t* y, int8_t* z) {
  * @see ADXL345_RA_OFSZ
  */
 void AdxlDriver::setOffset(int8_t x, int8_t y, int8_t z) {
-    _handle.writeSmbusByte(ADXL345_RA_OFSX, x);
-    _handle.writeSmbusByte(ADXL345_RA_OFSY, y);
-    _handle.writeSmbusByte(ADXL345_RA_OFSZ, z);
+    _handle.writeByte(ADXL345_RA_OFSX, x);
+    _handle.writeByte(ADXL345_RA_OFSY, y);
+    _handle.writeByte(ADXL345_RA_OFSZ, z);
 }
 /** Get X axis offset.
  * @return X axis offset value
@@ -228,7 +228,7 @@ void AdxlDriver::setOffset(int8_t x, int8_t y, int8_t z) {
  * @see ADXL345_RA_OFSX
  */
 int8_t AdxlDriver::getOffsetX() {
-    return _handle.readSmbusByte(ADXL345_RA_OFSX);
+    return _handle.readByte(ADXL345_RA_OFSX);
 }
 /** Set X axis offset.
  * @param x X axis offset value
@@ -236,7 +236,7 @@ int8_t AdxlDriver::getOffsetX() {
  * @see ADXL345_RA_OFSX
  */
 void AdxlDriver::setOffsetX(int8_t x) {
-    _handle.writeSmbusByte(ADXL345_RA_OFSX, x);
+    _handle.writeByte(ADXL345_RA_OFSX, x);
 }
 /** Get Y axis offset.
  * @return Y axis offset value
@@ -244,7 +244,7 @@ void AdxlDriver::setOffsetX(int8_t x) {
  * @see ADXL345_RA_OFSY
  */
 int8_t AdxlDriver::getOffsetY() {
-    return _handle.readSmbusByte(ADXL345_RA_OFSY);
+    return _handle.readByte(ADXL345_RA_OFSY);
 }
 /** Set Y axis offset.
  * @param y Y axis offset value
@@ -252,7 +252,7 @@ int8_t AdxlDriver::getOffsetY() {
  * @see ADXL345_RA_OFSY
  */
 void AdxlDriver::setOffsetY(int8_t y) {
-    _handle.writeSmbusByte(ADXL345_RA_OFSY, y);
+    _handle.writeByte(ADXL345_RA_OFSY, y);
 }
 /** Get Z axis offset.
  * @return Z axis offset value
@@ -260,7 +260,7 @@ void AdxlDriver::setOffsetY(int8_t y) {
  * @see ADXL345_RA_OFSZ
  */
 int8_t AdxlDriver::getOffsetZ() {
-    return _handle.readSmbusByte(ADXL345_RA_OFSZ);
+    return _handle.readByte(ADXL345_RA_OFSZ);
 }
 /** Set Z axis offset.
  * @param z Z axis offset value
@@ -268,7 +268,7 @@ int8_t AdxlDriver::getOffsetZ() {
  * @see ADXL345_RA_OFSZ
  */
 void AdxlDriver::setOffsetZ(int8_t z) {
-    _handle.writeSmbusByte(ADXL345_RA_OFSZ, z);
+    _handle.writeByte(ADXL345_RA_OFSZ, z);
 }
 
 // DUR register
@@ -282,7 +282,7 @@ void AdxlDriver::setOffsetZ(int8_t z) {
  * @see ADXL345_RA_DUR
  */
 uint8_t AdxlDriver::getTapDuration() {
-    return _handle.readSmbusByte(ADXL345_RA_DUR);
+    return _handle.readByte(ADXL345_RA_DUR);
 }
 /** Set tap duration.
  * @param duration Tap duration (scaled at 625 us/LSB)
@@ -290,7 +290,7 @@ uint8_t AdxlDriver::getTapDuration() {
  * @see ADXL345_RA_DUR
  */
 void AdxlDriver::setTapDuration(uint8_t duration) {
-    _handle.writeSmbusByte(ADXL345_RA_DUR, duration);
+    _handle.writeByte(ADXL345_RA_DUR, duration);
 }
 
 // LATENT register
@@ -305,7 +305,7 @@ void AdxlDriver::setTapDuration(uint8_t duration) {
  * @see ADXL345_RA_LATENT
  */
 uint8_t AdxlDriver::getDoubleTapLatency() {
-    return _handle.readSmbusByte(ADXL345_RA_LATENT);
+    return _handle.readByte(ADXL345_RA_LATENT);
 }
 /** Set tap duration.
  * @param latency Tap latency (scaled at 1.25 ms/LSB)
@@ -313,7 +313,7 @@ uint8_t AdxlDriver::getDoubleTapLatency() {
  * @see ADXL345_RA_LATENT
  */
 void AdxlDriver::setDoubleTapLatency(uint8_t latency) {
-    _handle.writeSmbusByte(ADXL345_RA_LATENT, latency);
+    _handle.writeByte(ADXL345_RA_LATENT, latency);
 }
 
 // WINDOW register
@@ -328,7 +328,7 @@ void AdxlDriver::setDoubleTapLatency(uint8_t latency) {
  * @see ADXL345_RA_WINDOW
  */
 uint8_t AdxlDriver::getDoubleTapWindow() {
-    return _handle.readSmbusByte(ADXL345_RA_WINDOW);
+    return _handle.readByte(ADXL345_RA_WINDOW);
 }
 /** Set double tap window.
  * @param window Double tap window (scaled at 1.25 ms/LSB)
@@ -336,7 +336,7 @@ uint8_t AdxlDriver::getDoubleTapWindow() {
  * @see ADXL345_RA_WINDOW
  */
 void AdxlDriver::setDoubleTapWindow(uint8_t window) {
-    _handle.writeSmbusByte(ADXL345_RA_WINDOW, window);
+    _handle.writeByte(ADXL345_RA_WINDOW, window);
 }
 
 // THRESH_ACT register
@@ -351,7 +351,7 @@ void AdxlDriver::setDoubleTapWindow(uint8_t window) {
  * @see ADXL345_RA_THRESH_ACT
  */
 uint8_t AdxlDriver::getActivityThreshold() {
-    return _handle.readSmbusByte(ADXL345_RA_THRESH_ACT);
+    return _handle.readByte(ADXL345_RA_THRESH_ACT);
 }
 /** Set activity threshold.
  * @param threshold Activity threshold (scaled at 62.5 mg/LSB)
@@ -359,7 +359,7 @@ uint8_t AdxlDriver::getActivityThreshold() {
  * @see ADXL345_RA_THRESH_ACT
  */
 void AdxlDriver::setActivityThreshold(uint8_t threshold) {
-    _handle.writeSmbusByte(ADXL345_RA_THRESH_ACT, threshold);
+    _handle.writeByte(ADXL345_RA_THRESH_ACT, threshold);
 }
 
 // THRESH_INACT register
@@ -374,7 +374,7 @@ void AdxlDriver::setActivityThreshold(uint8_t threshold) {
  * @see ADXL345_RA_THRESH_INACT
  */
 uint8_t AdxlDriver::getInactivityThreshold() {
-    return _handle.readSmbusByte(ADXL345_RA_THRESH_INACT);
+    return _handle.readByte(ADXL345_RA_THRESH_INACT);
 }
 /** Set inactivity threshold.
  * @param threshold Inctivity threshold (scaled at 62.5 mg/LSB)
@@ -382,7 +382,7 @@ uint8_t AdxlDriver::getInactivityThreshold() {
  * @see ADXL345_RA_THRESH_INACT
  */
 void AdxlDriver::setInactivityThreshold(uint8_t threshold) {
-    _handle.writeSmbusByte(ADXL345_RA_THRESH_INACT, threshold);
+    _handle.writeByte(ADXL345_RA_THRESH_INACT, threshold);
 }
 
 // TIME_INACT register
@@ -402,7 +402,7 @@ void AdxlDriver::setInactivityThreshold(uint8_t threshold) {
  * @see ADXL345_RA_TIME_INACT
  */
 uint8_t AdxlDriver::getInactivityTime() {
-    return _handle.readSmbusByte(ADXL345_RA_TIME_INACT);
+    return _handle.readByte(ADXL345_RA_TIME_INACT);
 }
 /** Set inactivity time.
  * @param time Inactivity time (scaled at 1 sec/LSB)
@@ -410,7 +410,7 @@ uint8_t AdxlDriver::getInactivityTime() {
  * @see ADXL345_RA_TIME_INACT
  */
 void AdxlDriver::setInactivityTime(uint8_t time) {
-    _handle.writeSmbusByte(ADXL345_RA_TIME_INACT, time);
+    _handle.writeByte(ADXL345_RA_TIME_INACT, time);
 }
 
 // ACT_INACT_CTL register
@@ -440,7 +440,7 @@ void AdxlDriver::setInactivityTime(uint8_t time) {
  * @see ADXL345_AIC_ACT_AC_BIT
  */
 bool AdxlDriver::getActivityAC() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_AC_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_AC_BIT);
 }
 /** Set activity AC/DC coupling.
  * @param enabled Activity AC/DC coupling (TRUE for AC, FALSE for DC)
@@ -449,7 +449,7 @@ bool AdxlDriver::getActivityAC() {
  * @see ADXL345_AIC_ACT_AC_BIT
  */
 void AdxlDriver::setActivityAC(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_AC_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_AC_BIT, enabled);
 }
 /** Get X axis activity monitoring inclusion.
  * For all "get[In]Activity*Enabled()" methods: a setting of 1 enables x-, y-,
@@ -467,7 +467,7 @@ void AdxlDriver::setActivityAC(bool enabled) {
  * @see ADXL345_AIC_ACT_X_BIT
  */
 bool AdxlDriver::getActivityXEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_X_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_X_BIT);
 }
 /** Set X axis activity monitoring inclusion.
  * @param enabled X axis activity monitoring inclusion value
@@ -477,7 +477,7 @@ bool AdxlDriver::getActivityXEnabled() {
  * @see ADXL345_AIC_ACT_X_BIT
  */
 void AdxlDriver::setActivityXEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_X_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_X_BIT, enabled);
 }
 /** Get Y axis activity monitoring.
  * @return Y axis activity monitoring enabled value
@@ -487,7 +487,7 @@ void AdxlDriver::setActivityXEnabled(bool enabled) {
  * @see ADXL345_AIC_ACT_Y_BIT
  */
 bool AdxlDriver::getActivityYEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Y_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Y_BIT);
 }
 /** Set Y axis activity monitoring inclusion.
  * @param enabled Y axis activity monitoring inclusion value
@@ -497,7 +497,7 @@ bool AdxlDriver::getActivityYEnabled() {
  * @see ADXL345_AIC_ACT_Y_BIT
  */
 void AdxlDriver::setActivityYEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Y_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Y_BIT, enabled);
 }
 /** Get Z axis activity monitoring.
  * @return Z axis activity monitoring enabled value
@@ -507,7 +507,7 @@ void AdxlDriver::setActivityYEnabled(bool enabled) {
  * @see ADXL345_AIC_ACT_Z_BIT
  */
 bool AdxlDriver::getActivityZEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Z_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Z_BIT);
 }
 /** Set Z axis activity monitoring inclusion.
  * @param enabled Z axis activity monitoring inclusion value
@@ -517,7 +517,7 @@ bool AdxlDriver::getActivityZEnabled() {
  * @see ADXL345_AIC_ACT_Z_BIT
  */
 void AdxlDriver::setActivityZEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Z_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_ACT_Z_BIT, enabled);
 }
 /** Get inactivity AC/DC coupling.
  * @return Inctivity coupling (0 = DC, 1 = AC)
@@ -526,7 +526,7 @@ void AdxlDriver::setActivityZEnabled(bool enabled) {
  * @see ADXL345_AIC_INACT_AC_BIT
  */
 bool AdxlDriver::getInactivityAC() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_AC_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_AC_BIT);
 }
 /** Set inctivity AC/DC coupling.
  * @param enabled Inactivity AC/DC coupling (TRUE for AC, FALSE for DC)
@@ -535,7 +535,7 @@ bool AdxlDriver::getInactivityAC() {
  * @see ADXL345_AIC_INACT_AC_BIT
  */
 void AdxlDriver::setInactivityAC(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_AC_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_AC_BIT, enabled);
 }
 /** Get X axis inactivity monitoring.
  * @return Y axis inactivity monitoring enabled value
@@ -545,7 +545,7 @@ void AdxlDriver::setInactivityAC(bool enabled) {
  * @see ADXL345_AIC_INACT_X_BIT
  */
 bool AdxlDriver::getInactivityXEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_X_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_X_BIT);
 }
 /** Set X axis activity monitoring inclusion.
  * @param enabled X axis inactivity monitoring inclusion value
@@ -555,7 +555,7 @@ bool AdxlDriver::getInactivityXEnabled() {
  * @see ADXL345_AIC_INACT_X_BIT
  */
 void AdxlDriver::setInactivityXEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_X_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_X_BIT, enabled);
 }
 /** Get Y axis inactivity monitoring.
  * @return Y axis inactivity monitoring enabled value
@@ -565,7 +565,7 @@ void AdxlDriver::setInactivityXEnabled(bool enabled) {
  * @see ADXL345_AIC_INACT_Y_BIT
  */
 bool AdxlDriver::getInactivityYEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Y_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Y_BIT);
 }
 /** Set Y axis inactivity monitoring inclusion.
  * @param enabled Y axis inactivity monitoring inclusion value
@@ -575,7 +575,7 @@ bool AdxlDriver::getInactivityYEnabled() {
  * @see ADXL345_AIC_INACT_Y_BIT
  */
 void AdxlDriver::setInactivityYEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Y_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Y_BIT, enabled);
 }
 /** Get Z axis inactivity monitoring.
  * @return Z axis inactivity monitoring enabled value
@@ -585,7 +585,7 @@ void AdxlDriver::setInactivityYEnabled(bool enabled) {
  * @see ADXL345_AIC_INACT_Z_BIT
  */
 bool AdxlDriver::getInactivityZEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Z_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Z_BIT);
 }
 /** Set Z axis inactivity monitoring inclusion.
  * @param enabled Z axis activity monitoring inclusion value
@@ -595,7 +595,7 @@ bool AdxlDriver::getInactivityZEnabled() {
  * @see ADXL345_AIC_INACT_Z_BIT
  */
 void AdxlDriver::setInactivityZEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Z_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_ACT_INACT_CTL, ADXL345_AIC_INACT_Z_BIT, enabled);
 }
 
 // THRESH_FF register
@@ -611,7 +611,7 @@ void AdxlDriver::setInactivityZEnabled(bool enabled) {
  * @see ADXL345_RA_THRESH_FF
  */
 uint8_t AdxlDriver::getFreefallThreshold() {
-    return _handle.readSmbusByte(ADXL345_RA_THRESH_FF);
+    return _handle.readByte(ADXL345_RA_THRESH_FF);
 }
 /** Set freefall threshold value.
  * @param threshold Freefall threshold value (scaled at 62.5 mg/LSB)
@@ -619,7 +619,7 @@ uint8_t AdxlDriver::getFreefallThreshold() {
  * @see ADXL345_RA_THRESH_FF
  */
 void AdxlDriver::setFreefallThreshold(uint8_t threshold) {
-    _handle.writeSmbusByte(ADXL345_RA_THRESH_FF, threshold);
+    _handle.writeByte(ADXL345_RA_THRESH_FF, threshold);
 }
 
 // TIME_FF register
@@ -635,7 +635,7 @@ void AdxlDriver::setFreefallThreshold(uint8_t threshold) {
  * @see ADXL345_RA_TIME_FF
  */
 uint8_t AdxlDriver::getFreefallTime() {
-    return _handle.readSmbusByte(ADXL345_RA_TIME_FF);
+    return _handle.readByte(ADXL345_RA_TIME_FF);
 }
 /** Set freefall time value.
  * @param threshold Freefall time value (scaled at 5 ms/LSB)
@@ -643,7 +643,7 @@ uint8_t AdxlDriver::getFreefallTime() {
  * @see ADXL345_RA_TIME_FF
  */
 void AdxlDriver::setFreefallTime(uint8_t time) {
-    _handle.writeSmbusByte(ADXL345_RA_TIME_FF, time);
+    _handle.writeByte(ADXL345_RA_TIME_FF, time);
 }
 
 // TAP_AXES register
@@ -658,7 +658,7 @@ void AdxlDriver::setFreefallTime(uint8_t time) {
  * @see ADXL345_TAPAXIS_SUP_BIT
  */
 bool AdxlDriver::getTapAxisSuppress() {
-    return _handle.readSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_SUP_BIT);
+    return _handle.readBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_SUP_BIT);
 }
 /** Set double-tap fast-movement suppression.
  * @param enabled Double-tap fast-movement suppression value
@@ -667,7 +667,7 @@ bool AdxlDriver::getTapAxisSuppress() {
  * @see ADXL345_TAPAXIS_SUP_BIT
  */
 void AdxlDriver::setTapAxisSuppress(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_SUP_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_SUP_BIT, enabled);
 }
 /** Get double-tap fast-movement suppression.
  * A setting of 1 in the TAP_X enable bit enables x-axis participation in tap
@@ -679,7 +679,7 @@ void AdxlDriver::setTapAxisSuppress(bool enabled) {
  * @see ADXL345_TAPAXIS_X_BIT
  */
 bool AdxlDriver::getTapAxisXEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_X_BIT);
+    return _handle.readBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_X_BIT);
 }
 /** Set tap detection X axis inclusion.
  * @param enabled X axis tap detection enabled value
@@ -688,7 +688,7 @@ bool AdxlDriver::getTapAxisXEnabled() {
  * @see ADXL345_TAPAXIS_X_BIT
  */
 void AdxlDriver::setTapAxisXEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_X_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_X_BIT, enabled);
 }
 /** Get tap detection Y axis inclusion.
  * A setting of 1 in the TAP_Y enable bit enables y-axis participation in tap
@@ -700,7 +700,7 @@ void AdxlDriver::setTapAxisXEnabled(bool enabled) {
  * @see ADXL345_TAPAXIS_Y_BIT
  */
 bool AdxlDriver::getTapAxisYEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Y_BIT);
+    return _handle.readBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Y_BIT);
 }
 /** Set tap detection Y axis inclusion.
  * @param enabled Y axis tap detection enabled value
@@ -709,7 +709,7 @@ bool AdxlDriver::getTapAxisYEnabled() {
  * @see ADXL345_TAPAXIS_Y_BIT
  */
 void AdxlDriver::setTapAxisYEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Y_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Y_BIT, enabled);
 }
 /** Get tap detection Z axis inclusion.
  * A setting of 1 in the TAP_Z enable bit enables z-axis participation in tap
@@ -721,7 +721,7 @@ void AdxlDriver::setTapAxisYEnabled(bool enabled) {
  * @see ADXL345_TAPAXIS_Z_BIT
  */
 bool AdxlDriver::getTapAxisZEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Z_BIT);
+    return _handle.readBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Z_BIT);
 }
 /** Set tap detection Z axis inclusion.
  * @param enabled Z axis tap detection enabled value
@@ -730,7 +730,7 @@ bool AdxlDriver::getTapAxisZEnabled() {
  * @see ADXL345_TAPAXIS_Z_BIT
  */
 void AdxlDriver::setTapAxisZEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Z_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_TAP_AXES, ADXL345_TAPAXIS_Z_BIT, enabled);
 }
 
 // ACT_TAP_STATUS register
@@ -748,7 +748,7 @@ void AdxlDriver::setTapAxisZEnabled(bool enabled) {
  * @see ADXL345_TAPSTAT_ACTX_BIT
  */
 bool AdxlDriver::getActivitySourceX() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ACTX_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ACTX_BIT);
 }
 /** Get Y axis activity source flag.
  * @return Y axis activity source flag
@@ -757,7 +757,7 @@ bool AdxlDriver::getActivitySourceX() {
  * @see ADXL345_TAPSTAT_ACTY_BIT
  */
 bool AdxlDriver::getActivitySourceY() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ACTY_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ACTY_BIT);
 }
 /** Get Z axis activity source flag.
  * @return Z axis activity source flag
@@ -766,7 +766,7 @@ bool AdxlDriver::getActivitySourceY() {
  * @see ADXL345_TAPSTAT_ACTZ_BIT
  */
 bool AdxlDriver::getActivitySourceZ() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ACTZ_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ACTZ_BIT);
 }
 /** Get sleep mode flag.
  * A setting of 1 in the asleep bit indicates that the part is asleep, and a
@@ -778,7 +778,7 @@ bool AdxlDriver::getActivitySourceZ() {
  * @see ADXL345_TAPSTAT_ASLEEP_BIT
  */
 bool AdxlDriver::getAsleep() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ASLEEP_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_ASLEEP_BIT);
 }
 /** Get X axis tap source flag.
  * @return X axis tap source flag
@@ -787,7 +787,7 @@ bool AdxlDriver::getAsleep() {
  * @see ADXL345_TAPSTAT_TAPX_BIT
  */
 bool AdxlDriver::getTapSourceX() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_TAPX_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_TAPX_BIT);
 }
 /** Get Y axis tap source flag.
  * @return Y axis tap source flag
@@ -796,7 +796,7 @@ bool AdxlDriver::getTapSourceX() {
  * @see ADXL345_TAPSTAT_TAPY_BIT
  */
 bool AdxlDriver::getTapSourceY() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_TAPY_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_TAPY_BIT);
 }
 /** Get Z axis tap source flag.
  * @return Z axis tap source flag
@@ -805,7 +805,7 @@ bool AdxlDriver::getTapSourceY() {
  * @see ADXL345_TAPSTAT_TAPZ_BIT
  */
 bool AdxlDriver::getTapSourceZ() {
-    return _handle.readSmbusBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_TAPZ_BIT);
+    return _handle.readBit(ADXL345_RA_ACT_TAP_STATUS, ADXL345_TAPSTAT_TAPZ_BIT);
 }
 
 // BW_RATE register
@@ -819,7 +819,7 @@ bool AdxlDriver::getTapSourceZ() {
  * @see ADXL345_BW_LOWPOWER_BIT
  */
 bool AdxlDriver::getLowPowerEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_BW_RATE, ADXL345_BW_LOWPOWER_BIT);
+    return _handle.readBit(ADXL345_RA_BW_RATE, ADXL345_BW_LOWPOWER_BIT);
 }
 /** Set low power enabled status.
  * @see getLowPowerEnabled()
@@ -828,7 +828,7 @@ bool AdxlDriver::getLowPowerEnabled() {
  * @see ADXL345_BW_LOWPOWER_BIT
  */
 void AdxlDriver::setLowPowerEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_BW_RATE, ADXL345_BW_LOWPOWER_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_BW_RATE, ADXL345_BW_LOWPOWER_BIT, enabled);
 }
 /** Get measurement data rate.
  * These bits select the device bandwidth and output data rate (see Table 7 and
@@ -843,7 +843,7 @@ void AdxlDriver::setLowPowerEnabled(bool enabled) {
  * @see ADXL345_BW_RATE_LENGTH
  */
 uint8_t AdxlDriver::getRate() {
-    return _handle.readSmbusBits(ADXL345_RA_BW_RATE, ADXL345_BW_RATE_BIT, ADXL345_BW_RATE_LENGTH);
+    return _handle.readBits(ADXL345_RA_BW_RATE, ADXL345_BW_RATE_BIT, ADXL345_BW_RATE_LENGTH);
 }
 /** Set measurement data rate.
  * 0x7 =  12.5Hz
@@ -857,7 +857,7 @@ uint8_t AdxlDriver::getRate() {
  * @see ADXL345_BW_RATE_LENGTH
  */
 void AdxlDriver::setRate(uint8_t rate) {
-    _handle.writeSmbusBits(ADXL345_RA_BW_RATE, ADXL345_BW_RATE_BIT, ADXL345_BW_RATE_LENGTH, rate);
+    _handle.writeBits(ADXL345_RA_BW_RATE, ADXL345_BW_RATE_BIT, ADXL345_BW_RATE_LENGTH, rate);
 }
 
 // POWER_CTL register
@@ -883,7 +883,7 @@ void AdxlDriver::setRate(uint8_t rate) {
  * @see ADXL345_PCTL_LINK_BIT
  */
 bool AdxlDriver::getLinkEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_LINK_BIT);
+    return _handle.readBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_LINK_BIT);
 }
 /** Set activity/inactivity serial linkage status.
  * @param enabled New link status
@@ -891,7 +891,7 @@ bool AdxlDriver::getLinkEnabled() {
  * @see ADXL345_PCTL_LINK_BIT
  */
 void AdxlDriver::setLinkEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_LINK_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_LINK_BIT, enabled);
 }
 /** Get auto-sleep enabled status.
  * If the link bit is set, a setting of 1 in the AUTO_SLEEP bit enables the
@@ -925,7 +925,7 @@ void AdxlDriver::setLinkEnabled(bool enabled) {
  * @see ADXL345_PCTL_AUTOSLEEP_BIT
  */
 bool AdxlDriver::getAutoSleepEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_AUTOSLEEP_BIT);
+    return _handle.readBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_AUTOSLEEP_BIT);
 }
 /** Set auto-sleep enabled status.
  * @param enabled New auto-sleep status
@@ -934,7 +934,7 @@ bool AdxlDriver::getAutoSleepEnabled() {
  * @see ADXL345_PCTL_AUTOSLEEP_BIT
  */
 void AdxlDriver::setAutoSleepEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_AUTOSLEEP_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_AUTOSLEEP_BIT, enabled);
 }
 /** Get measurement enabled status.
  * A setting of 0 in the measure bit places the part into standby mode, and a
@@ -945,7 +945,7 @@ void AdxlDriver::setAutoSleepEnabled(bool enabled) {
  * @see ADXL345_PCTL_MEASURE_BIT
  */
 bool AdxlDriver::getMeasureEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_MEASURE_BIT);
+    return _handle.readBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_MEASURE_BIT);
 }
 /** Set measurement enabled status.
  * @param enabled Measurement enabled status
@@ -954,7 +954,7 @@ bool AdxlDriver::getMeasureEnabled() {
  * @see ADXL345_PCTL_MEASURE_BIT
  */
 void AdxlDriver::setMeasureEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_MEASURE_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_MEASURE_BIT, enabled);
 }
 /** Get sleep mode enabled status.
  * A setting of 0 in the sleep bit puts the part into the normal mode of
@@ -977,7 +977,7 @@ void AdxlDriver::setMeasureEnabled(bool enabled) {
  * @see ADXL345_PCTL_SLEEP_BIT
  */
 bool AdxlDriver::getSleepEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_SLEEP_BIT);
+    return _handle.readBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_SLEEP_BIT);
 }
 /** Set sleep mode enabled status.
  * @param Sleep mode enabled status
@@ -986,7 +986,7 @@ bool AdxlDriver::getSleepEnabled() {
  * @see ADXL345_PCTL_SLEEP_BIT
  */
 void AdxlDriver::setSleepEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_SLEEP_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_POWER_CTL, ADXL345_PCTL_SLEEP_BIT, enabled);
 }
 /** Get wakeup frequency.
  * These bits control the frequency of readings in sleep mode as described in
@@ -996,7 +996,7 @@ void AdxlDriver::setSleepEnabled(bool enabled) {
  * @see ADXL345_PCTL_SLEEP_BIT
  */
 uint8_t AdxlDriver::getWakeupFrequency() {
-    return _handle.readSmbusBits(ADXL345_RA_POWER_CTL, ADXL345_PCTL_WAKEUP_BIT, ADXL345_PCTL_WAKEUP_LENGTH);
+    return _handle.readBits(ADXL345_RA_POWER_CTL, ADXL345_PCTL_WAKEUP_BIT, ADXL345_PCTL_WAKEUP_LENGTH);
 }
 /** Set wakeup frequency.
  * @param frequency Wakeup frequency (0x0 - 0x3, indicating 8/4/2/1Hz respectively)
@@ -1005,7 +1005,7 @@ uint8_t AdxlDriver::getWakeupFrequency() {
  * @see ADXL345_PCTL_SLEEP_BIT
  */
 void AdxlDriver::setWakeupFrequency(uint8_t frequency) {
-    _handle.writeSmbusBits(ADXL345_RA_POWER_CTL, ADXL345_PCTL_WAKEUP_BIT, ADXL345_PCTL_WAKEUP_LENGTH, frequency);
+    _handle.writeBits(ADXL345_RA_POWER_CTL, ADXL345_PCTL_WAKEUP_BIT, ADXL345_PCTL_WAKEUP_LENGTH, frequency);
 }
 
 // INT_ENABLE register
@@ -1021,7 +1021,7 @@ void AdxlDriver::setWakeupFrequency(uint8_t frequency) {
  * @see ADXL345_INT_DATA_READY_BIT
  */
 bool AdxlDriver::getIntDataReadyEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DATA_READY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DATA_READY_BIT);
 }
 /** Set DATA_READY interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1030,7 +1030,7 @@ bool AdxlDriver::getIntDataReadyEnabled() {
  * @see ADXL345_INT_DATA_READY_BIT
  */
 void AdxlDriver::setIntDataReadyEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DATA_READY_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DATA_READY_BIT, enabled);
 }
 /** Set SINGLE_TAP interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1039,7 +1039,7 @@ void AdxlDriver::setIntDataReadyEnabled(bool enabled) {
  * @see ADXL345_INT_SINGLE_TAP_BIT
  */
 bool AdxlDriver::getIntSingleTapEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_SINGLE_TAP_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_SINGLE_TAP_BIT);
 }
 /** Set SINGLE_TAP interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1048,7 +1048,7 @@ bool AdxlDriver::getIntSingleTapEnabled() {
  * @see ADXL345_INT_SINGLE_TAP_BIT
  */
 void AdxlDriver::setIntSingleTapEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_SINGLE_TAP_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_SINGLE_TAP_BIT, enabled);
 }
 /** Get DOUBLE_TAP interrupt enabled status.
  * @return Interrupt enabled status
@@ -1057,7 +1057,7 @@ void AdxlDriver::setIntSingleTapEnabled(bool enabled) {
  * @see ADXL345_INT_DOUBLE_TAP_BIT
  */
 bool AdxlDriver::getIntDoubleTapEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DOUBLE_TAP_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DOUBLE_TAP_BIT);
 }
 /** Set DOUBLE_TAP interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1066,7 +1066,7 @@ bool AdxlDriver::getIntDoubleTapEnabled() {
  * @see ADXL345_INT_DOUBLE_TAP_BIT
  */
 void AdxlDriver::setIntDoubleTapEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DOUBLE_TAP_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_DOUBLE_TAP_BIT, enabled);
 }
 /** Set ACTIVITY interrupt enabled status.
  * @return Interrupt enabled status
@@ -1075,7 +1075,7 @@ void AdxlDriver::setIntDoubleTapEnabled(bool enabled) {
  * @see ADXL345_INT_ACTIVITY_BIT
  */
 bool AdxlDriver::getIntActivityEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_ACTIVITY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_ACTIVITY_BIT);
 }
 /** Set ACTIVITY interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1084,7 +1084,7 @@ bool AdxlDriver::getIntActivityEnabled() {
  * @see ADXL345_INT_ACTIVITY_BIT
  */
 void AdxlDriver::setIntActivityEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_ACTIVITY_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_ACTIVITY_BIT, enabled);
 }
 /** Get INACTIVITY interrupt enabled status.
  * @return Interrupt enabled status
@@ -1093,7 +1093,7 @@ void AdxlDriver::setIntActivityEnabled(bool enabled) {
  * @see ADXL345_INT_INACTIVITY_BIT
  */
 bool AdxlDriver::getIntInactivityEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_INACTIVITY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_INACTIVITY_BIT);
 }
 /** Set INACTIVITY interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1102,7 +1102,7 @@ bool AdxlDriver::getIntInactivityEnabled() {
  * @see ADXL345_INT_INACTIVITY_BIT
  */
 void AdxlDriver::setIntInactivityEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_INACTIVITY_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_INACTIVITY_BIT, enabled);
 }
 /** Get FREE_FALL interrupt enabled status.
  * @return Interrupt enabled status
@@ -1111,7 +1111,7 @@ void AdxlDriver::setIntInactivityEnabled(bool enabled) {
  * @see ADXL345_INT_FREE_FALL_BIT
  */
 bool AdxlDriver::getIntFreefallEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_FREE_FALL_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_FREE_FALL_BIT);
 }
 /** Set FREE_FALL interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1120,7 +1120,7 @@ bool AdxlDriver::getIntFreefallEnabled() {
  * @see ADXL345_INT_FREE_FALL_BIT
  */
 void AdxlDriver::setIntFreefallEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_FREE_FALL_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_FREE_FALL_BIT, enabled);
 }
 /** Get WATERMARK interrupt enabled status.
  * @return Interrupt enabled status
@@ -1129,7 +1129,7 @@ void AdxlDriver::setIntFreefallEnabled(bool enabled) {
  * @see ADXL345_INT_WATERMARK_BIT
  */
 bool AdxlDriver::getIntWatermarkEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_WATERMARK_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_WATERMARK_BIT);
 }
 /** Set WATERMARK interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1138,7 +1138,7 @@ bool AdxlDriver::getIntWatermarkEnabled() {
  * @see ADXL345_INT_WATERMARK_BIT
  */
 void AdxlDriver::setIntWatermarkEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_WATERMARK_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_WATERMARK_BIT, enabled);
 }
 /** Get OVERRUN interrupt enabled status.
  * @return Interrupt enabled status
@@ -1147,7 +1147,7 @@ void AdxlDriver::setIntWatermarkEnabled(bool enabled) {
  * @see ADXL345_INT_OVERRUN_BIT
  */
 bool AdxlDriver::getIntOverrunEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_OVERRUN_BIT);
+    return _handle.readBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_OVERRUN_BIT);
 }
 /** Set OVERRUN interrupt enabled status.
  * @param enabled New interrupt enabled status
@@ -1156,7 +1156,7 @@ bool AdxlDriver::getIntOverrunEnabled() {
  * @see ADXL345_INT_OVERRUN_BIT
  */
 void AdxlDriver::setIntOverrunEnabled(bool enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_OVERRUN_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_INT_ENABLE, ADXL345_INT_OVERRUN_BIT, enabled);
 }
 
 // INT_MAP register
@@ -1170,7 +1170,7 @@ void AdxlDriver::setIntOverrunEnabled(bool enabled) {
  * @see ADXL345_INT_DATA_READY_BIT
  */
 uint8_t AdxlDriver::getIntDataReadyPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_DATA_READY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_DATA_READY_BIT);
 }
 /** Set DATA_READY interrupt pin.
  * @param pin Interrupt pin setting
@@ -1179,7 +1179,7 @@ uint8_t AdxlDriver::getIntDataReadyPin() {
  * @see ADXL345_INT_DATA_READY_BIT
  */
 void AdxlDriver::setIntDataReadyPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_DATA_READY_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_DATA_READY_BIT, pin);
 }
 /** Get SINGLE_TAP interrupt pin.
  * @return Interrupt pin setting
@@ -1188,7 +1188,7 @@ void AdxlDriver::setIntDataReadyPin(uint8_t pin) {
  * @see ADXL345_INT_SINGLE_TAP_BIT
  */
 uint8_t AdxlDriver::getIntSingleTapPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_SINGLE_TAP_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_SINGLE_TAP_BIT);
 }
 /** Set SINGLE_TAP interrupt pin.
  * @param pin Interrupt pin setting
@@ -1197,7 +1197,7 @@ uint8_t AdxlDriver::getIntSingleTapPin() {
  * @see ADXL345_INT_SINGLE_TAP_BIT
  */
 void AdxlDriver::setIntSingleTapPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_SINGLE_TAP_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_SINGLE_TAP_BIT, pin);
 }
 /** Get DOUBLE_TAP interrupt pin.
  * @return Interrupt pin setting
@@ -1206,7 +1206,7 @@ void AdxlDriver::setIntSingleTapPin(uint8_t pin) {
  * @see ADXL345_INT_DOUBLE_TAP_BIT
  */
 uint8_t AdxlDriver::getIntDoubleTapPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_DOUBLE_TAP_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_DOUBLE_TAP_BIT);
 }
 /** Set DOUBLE_TAP interrupt pin.
  * @param pin Interrupt pin setting
@@ -1215,7 +1215,7 @@ uint8_t AdxlDriver::getIntDoubleTapPin() {
  * @see ADXL345_INT_DOUBLE_TAP_BIT
  */
 void AdxlDriver::setIntDoubleTapPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_DOUBLE_TAP_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_DOUBLE_TAP_BIT, pin);
 }
 /** Get ACTIVITY interrupt pin.
  * @return Interrupt pin setting
@@ -1224,7 +1224,7 @@ void AdxlDriver::setIntDoubleTapPin(uint8_t pin) {
  * @see ADXL345_INT_ACTIVITY_BIT
  */
 uint8_t AdxlDriver::getIntActivityPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_ACTIVITY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_ACTIVITY_BIT);
 }
 /** Set ACTIVITY interrupt pin.
  * @param pin Interrupt pin setting
@@ -1233,7 +1233,7 @@ uint8_t AdxlDriver::getIntActivityPin() {
  * @see ADXL345_INT_ACTIVITY_BIT
  */
 void AdxlDriver::setIntActivityPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_ACTIVITY_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_ACTIVITY_BIT, pin);
 }
 /** Get INACTIVITY interrupt pin.
  * @return Interrupt pin setting
@@ -1242,7 +1242,7 @@ void AdxlDriver::setIntActivityPin(uint8_t pin) {
  * @see ADXL345_INT_INACTIVITY_BIT
  */
 uint8_t AdxlDriver::getIntInactivityPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_INACTIVITY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_INACTIVITY_BIT);
 }
 /** Set INACTIVITY interrupt pin.
  * @param pin Interrupt pin setting
@@ -1251,7 +1251,7 @@ uint8_t AdxlDriver::getIntInactivityPin() {
  * @see ADXL345_INT_INACTIVITY_BIT
  */
 void AdxlDriver::setIntInactivityPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_INACTIVITY_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_INACTIVITY_BIT, pin);
 }
 /** Get FREE_FALL interrupt pin.
  * @return Interrupt pin setting
@@ -1260,7 +1260,7 @@ void AdxlDriver::setIntInactivityPin(uint8_t pin) {
  * @see ADXL345_INT_FREE_FALL_BIT
  */
 uint8_t AdxlDriver::getIntFreefallPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_FREE_FALL_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_FREE_FALL_BIT);
 }
 /** Set FREE_FALL interrupt pin.
  * @param pin Interrupt pin setting
@@ -1269,7 +1269,7 @@ uint8_t AdxlDriver::getIntFreefallPin() {
  * @see ADXL345_INT_FREE_FALL_BIT
  */
 void AdxlDriver::setIntFreefallPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_FREE_FALL_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_FREE_FALL_BIT, pin);
 }
 /** Get WATERMARK interrupt pin.
  * @return Interrupt pin setting
@@ -1278,7 +1278,7 @@ void AdxlDriver::setIntFreefallPin(uint8_t pin) {
  * @see ADXL345_INT_WATERMARK_BIT
  */
 uint8_t AdxlDriver::getIntWatermarkPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_WATERMARK_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_WATERMARK_BIT);
 }
 /** Set WATERMARK interrupt pin.
  * @param pin Interrupt pin setting
@@ -1287,7 +1287,7 @@ uint8_t AdxlDriver::getIntWatermarkPin() {
  * @see ADXL345_INT_WATERMARK_BIT
  */
 void AdxlDriver::setIntWatermarkPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_WATERMARK_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_WATERMARK_BIT, pin);
 }
 /** Get OVERRUN interrupt pin.
  * @return Interrupt pin setting
@@ -1296,7 +1296,7 @@ void AdxlDriver::setIntWatermarkPin(uint8_t pin) {
  * @see ADXL345_INT_OVERRUN_BIT
  */
 uint8_t AdxlDriver::getIntOverrunPin() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_OVERRUN_BIT);
+    return _handle.readBit(ADXL345_RA_INT_MAP, ADXL345_INT_OVERRUN_BIT);
 }
 /** Set OVERRUN interrupt pin.
  * @param pin Interrupt pin setting
@@ -1305,7 +1305,7 @@ uint8_t AdxlDriver::getIntOverrunPin() {
  * @see ADXL345_INT_OVERRUN_BIT
  */
 void AdxlDriver::setIntOverrunPin(uint8_t pin) {
-    _handle.writeSmbusBit(ADXL345_RA_INT_MAP, ADXL345_INT_OVERRUN_BIT, pin);
+    _handle.writeBit(ADXL345_RA_INT_MAP, ADXL345_INT_OVERRUN_BIT, pin);
 }
 
 // INT_SOURCE register
@@ -1325,7 +1325,7 @@ void AdxlDriver::setIntOverrunPin(uint8_t pin) {
  * @see ADXL345_INT_DATA_READY_BIT
  */
 uint8_t AdxlDriver::getIntDataReadySource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_DATA_READY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_DATA_READY_BIT);
 }
 /** Get SINGLE_TAP interrupt source flag.
  * @return Interrupt source flag
@@ -1333,7 +1333,7 @@ uint8_t AdxlDriver::getIntDataReadySource() {
  * @see ADXL345_INT_SINGLE_TAP_BIT
  */
 uint8_t AdxlDriver::getIntSingleTapSource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_SINGLE_TAP_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_SINGLE_TAP_BIT);
 }
 /** Get DOUBLE_TAP interrupt source flag.
  * @return Interrupt source flag
@@ -1341,7 +1341,7 @@ uint8_t AdxlDriver::getIntSingleTapSource() {
  * @see ADXL345_INT_DOUBLE_TAP_BIT
  */
 uint8_t AdxlDriver::getIntDoubleTapSource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_DOUBLE_TAP_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_DOUBLE_TAP_BIT);
 }
 /** Get ACTIVITY interrupt source flag.
  * @return Interrupt source flag
@@ -1349,7 +1349,7 @@ uint8_t AdxlDriver::getIntDoubleTapSource() {
  * @see ADXL345_INT_ACTIVITY_BIT
  */
 uint8_t AdxlDriver::getIntActivitySource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_ACTIVITY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_ACTIVITY_BIT);
 }
 /** Get INACTIVITY interrupt source flag.
  * @return Interrupt source flag
@@ -1357,7 +1357,7 @@ uint8_t AdxlDriver::getIntActivitySource() {
  * @see ADXL345_INT_INACTIVITY_BIT
  */
 uint8_t AdxlDriver::getIntInactivitySource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_INACTIVITY_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_INACTIVITY_BIT);
 }
 /** Get FREE_FALL interrupt source flag.
  * @return Interrupt source flag
@@ -1365,7 +1365,7 @@ uint8_t AdxlDriver::getIntInactivitySource() {
  * @see ADXL345_INT_FREE_FALL_BIT
  */
 uint8_t AdxlDriver::getIntFreefallSource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_FREE_FALL_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_FREE_FALL_BIT);
 }
 /** Get WATERMARK interrupt source flag.
  * @return Interrupt source flag
@@ -1373,7 +1373,7 @@ uint8_t AdxlDriver::getIntFreefallSource() {
  * @see ADXL345_INT_WATERMARK_BIT
  */
 uint8_t AdxlDriver::getIntWatermarkSource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_WATERMARK_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_WATERMARK_BIT);
 }
 /** Get OVERRUN interrupt source flag.
  * @return Interrupt source flag
@@ -1381,7 +1381,7 @@ uint8_t AdxlDriver::getIntWatermarkSource() {
  * @see ADXL345_INT_OVERRUN_BIT
  */
 uint8_t AdxlDriver::getIntOverrunSource() {
-    return _handle.readSmbusBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_OVERRUN_BIT);
+    return _handle.readBit(ADXL345_RA_INT_SOURCE, ADXL345_INT_OVERRUN_BIT);
 }
 
 // DATA_FORMAT register
@@ -1395,7 +1395,7 @@ uint8_t AdxlDriver::getIntOverrunSource() {
  * @see ADXL345_FORMAT_SELFTEST_BIT
  */
 uint8_t AdxlDriver::getSelfTestEnabled() {
-    return _handle.readSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SELFTEST_BIT);
+    return _handle.readBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SELFTEST_BIT);
 }
 /** Set self-test force enabled.
  * @param enabled New self-test force enabled setting
@@ -1404,7 +1404,7 @@ uint8_t AdxlDriver::getSelfTestEnabled() {
  * @see ADXL345_FORMAT_SELFTEST_BIT
  */
 void AdxlDriver::setSelfTestEnabled(uint8_t enabled) {
-    _handle.writeSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SELFTEST_BIT, enabled);
+    _handle.writeBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SELFTEST_BIT, enabled);
 }
 /** Get SPI mode setting.
  * A value of 1 in the SPI bit sets the device to 3-wire SPI mode, and a value
@@ -1414,7 +1414,7 @@ void AdxlDriver::setSelfTestEnabled(uint8_t enabled) {
  * @see ADXL345_FORMAT_SELFTEST_BIT
  */
 uint8_t AdxlDriver::getSPIMode() {
-    return _handle.readSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SPIMODE_BIT);
+    return _handle.readBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SPIMODE_BIT);
 }
 /** Set SPI mode setting.
  * @param mode New SPI mode setting
@@ -1423,7 +1423,7 @@ uint8_t AdxlDriver::getSPIMode() {
  * @see ADXL345_FORMAT_SELFTEST_BIT
  */
 void AdxlDriver::setSPIMode(uint8_t mode) {
-    _handle.writeSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SPIMODE_BIT, mode);
+    _handle.writeBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_SPIMODE_BIT, mode);
 }
 /** Get interrupt mode setting.
  * A value of 0 in the INT_INVERT bit sets the interrupts to active high, and a
@@ -1433,7 +1433,7 @@ void AdxlDriver::setSPIMode(uint8_t mode) {
  * @see ADXL345_FORMAT_INTMODE_BIT
  */
 uint8_t AdxlDriver::getInterruptMode() {
-    return _handle.readSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_INTMODE_BIT);
+    return _handle.readBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_INTMODE_BIT);
 }
 /** Set interrupt mode setting.
  * @param mode New interrupt mode setting
@@ -1442,7 +1442,7 @@ uint8_t AdxlDriver::getInterruptMode() {
  * @see ADXL345_FORMAT_INTMODE_BIT
  */
 void AdxlDriver::setInterruptMode(uint8_t mode) {
-    _handle.writeSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_INTMODE_BIT, mode);
+    _handle.writeBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_INTMODE_BIT, mode);
 }
 /** Get full resolution mode setting.
  * When this bit is set to a value of 1, the device is in full resolution mode,
@@ -1455,7 +1455,7 @@ void AdxlDriver::setInterruptMode(uint8_t mode) {
  * @see ADXL345_FORMAT_FULL_RES_BIT
  */
 uint8_t AdxlDriver::getFullResolution() {
-    return _handle.readSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_FULL_RES_BIT);
+    return _handle.readBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_FULL_RES_BIT);
 }
 /** Set full resolution mode setting.
  * @param resolution New full resolution enabled setting
@@ -1464,7 +1464,7 @@ uint8_t AdxlDriver::getFullResolution() {
  * @see ADXL345_FORMAT_FULL_RES_BIT
  */
 void AdxlDriver::setFullResolution(uint8_t resolution) {
-    _handle.writeSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_FULL_RES_BIT, resolution);
+    _handle.writeBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_FULL_RES_BIT, resolution);
 }
 /** Get data justification mode setting.
  * A setting of 1 in the justify bit selects left-justified (MSB) mode, and a
@@ -1474,7 +1474,7 @@ void AdxlDriver::setFullResolution(uint8_t resolution) {
  * @see ADXL345_FORMAT_JUSTIFY_BIT
  */
 uint8_t AdxlDriver::getDataJustification() {
-    return _handle.readSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_JUSTIFY_BIT);
+    return _handle.readBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_JUSTIFY_BIT);
 }
 /** Set data justification mode setting.
  * @param justification New data justification mode
@@ -1483,7 +1483,7 @@ uint8_t AdxlDriver::getDataJustification() {
  * @see ADXL345_FORMAT_JUSTIFY_BIT
  */
 void AdxlDriver::setDataJustification(uint8_t justification) {
-    _handle.writeSmbusBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_JUSTIFY_BIT, justification);
+    _handle.writeBit(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_JUSTIFY_BIT, justification);
 }
 /** Get data range setting.
  * These bits set the g range as described in Table 21. (That is, 0x0 - 0x3 to
@@ -1494,7 +1494,7 @@ void AdxlDriver::setDataJustification(uint8_t justification) {
  * @see ADXL345_FORMAT_RANGE_LENGTH
  */
 uint8_t AdxlDriver::getRange() {
-    return _handle.readSmbusBits(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_RANGE_BIT, ADXL345_FORMAT_RANGE_LENGTH);
+    return _handle.readBits(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_RANGE_BIT, ADXL345_FORMAT_RANGE_LENGTH);
 }
 /** Set data range setting.
  * @param range Range value (0x0 - 0x3 for 2g/4g/8g/16g)
@@ -1504,7 +1504,7 @@ uint8_t AdxlDriver::getRange() {
  * @see ADXL345_FORMAT_RANGE_LENGTH
  */
 void AdxlDriver::setRange(uint8_t range) {
-    _handle.writeSmbusBits(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_RANGE_BIT, ADXL345_FORMAT_RANGE_LENGTH, range);
+    _handle.writeBits(ADXL345_RA_DATA_FORMAT, ADXL345_FORMAT_RANGE_BIT, ADXL345_FORMAT_RANGE_LENGTH, range);
 }
 
 // DATA* registers
@@ -1530,7 +1530,7 @@ void AdxlDriver::setRange(uint8_t range) {
  * @see ADXL345_RA_DATAX0
  */
 void AdxlDriver::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
-    _handle.readSmbusBytes(ADXL345_RA_DATAX0, 6, _buffer);
+    _handle.readBytes(ADXL345_RA_DATAX0, 6, _buffer);
     *x = (((int16_t)_buffer[1]) << 8) | _buffer[0];
     *y = (((int16_t)_buffer[3]) << 8) | _buffer[2];
     *z = (((int16_t)_buffer[5]) << 8) | _buffer[4];
@@ -1540,7 +1540,7 @@ void AdxlDriver::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
  * @see ADXL345_RA_DATAX0
  */
 int16_t AdxlDriver::getAccelerationX() {
-    _handle.readSmbusBytes(ADXL345_RA_DATAX0, 2, _buffer);
+    _handle.readBytes(ADXL345_RA_DATAX0, 2, _buffer);
     return (((int16_t)_buffer[1]) << 8) | _buffer[0];
 }
 /** Get Y-axis accleration measurement.
@@ -1548,7 +1548,7 @@ int16_t AdxlDriver::getAccelerationX() {
  * @see ADXL345_RA_DATAY0
  */
 int16_t AdxlDriver::getAccelerationY() {
-    _handle.readSmbusBytes(ADXL345_RA_DATAY0, 2, _buffer);
+    _handle.readBytes(ADXL345_RA_DATAY0, 2, _buffer);
     return (((int16_t)_buffer[1]) << 8) | _buffer[0];
 }
 /** Get Z-axis accleration measurement.
@@ -1556,7 +1556,7 @@ int16_t AdxlDriver::getAccelerationY() {
  * @see ADXL345_RA_DATAZ0
  */
 int16_t AdxlDriver::getAccelerationZ() {
-    _handle.readSmbusBytes(ADXL345_RA_DATAZ0, 2, _buffer);
+    _handle.readBytes(ADXL345_RA_DATAZ0, 2, _buffer);
     return (((int16_t)_buffer[1]) << 8) | _buffer[0];
 }
 
@@ -1583,7 +1583,7 @@ int16_t AdxlDriver::getAccelerationZ() {
  * @see ADXL345_FIFO_MODE_LENGTH
  */
 uint8_t AdxlDriver::getFIFOMode() {
-    return _handle.readSmbusBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_MODE_BIT, ADXL345_FIFO_MODE_LENGTH);
+    return _handle.readBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_MODE_BIT, ADXL345_FIFO_MODE_LENGTH);
 }
 /** Set FIFO mode.
  * @param mode New FIFO mode
@@ -1593,7 +1593,7 @@ uint8_t AdxlDriver::getFIFOMode() {
  * @see ADXL345_FIFO_MODE_LENGTH
  */
 void AdxlDriver::setFIFOMode(uint8_t mode) {
-    _handle.writeSmbusBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_MODE_BIT, ADXL345_FIFO_MODE_LENGTH, mode);
+    _handle.writeBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_MODE_BIT, ADXL345_FIFO_MODE_LENGTH, mode);
 }
 /** Get FIFO trigger interrupt setting.
  * A value of 0 in the trigger bit links the trigger event of trigger mode to
@@ -1603,7 +1603,7 @@ void AdxlDriver::setFIFOMode(uint8_t mode) {
  * @see ADXL345_FIFO_TRIGGER_BIT
  */
 uint8_t AdxlDriver::getFIFOTriggerInterruptPin() {
-    return _handle.readSmbusBit(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_TRIGGER_BIT);
+    return _handle.readBit(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_TRIGGER_BIT);
 }
 /** Set FIFO trigger interrupt pin setting.
  * @param interrupt New FIFO trigger interrupt pin setting
@@ -1611,7 +1611,7 @@ uint8_t AdxlDriver::getFIFOTriggerInterruptPin() {
  * @see ADXL345_FIFO_TRIGGER_BIT
  */
 void AdxlDriver::setFIFOTriggerInterruptPin(uint8_t interrupt) {
-    _handle.writeSmbusBit(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_TRIGGER_BIT, interrupt);
+    _handle.writeBit(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_TRIGGER_BIT, interrupt);
 }
 /** Get FIFO samples setting.
  * The function of these bits depends on the FIFO mode selected (see Table 23).
@@ -1633,7 +1633,7 @@ void AdxlDriver::setFIFOTriggerInterruptPin(uint8_t interrupt) {
  * @see ADXL345_FIFO_SAMPLES_LENGTH
  */
 uint8_t AdxlDriver::getFIFOSamples() {
-    return _handle.readSmbusBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_SAMPLES_BIT, ADXL345_FIFO_SAMPLES_LENGTH);
+    return _handle.readBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_SAMPLES_BIT, ADXL345_FIFO_SAMPLES_LENGTH);
 }
 /** Set FIFO samples setting.
  * @param size New FIFO samples setting (impact depends on FIFO mode setting)
@@ -1644,7 +1644,7 @@ uint8_t AdxlDriver::getFIFOSamples() {
  * @see ADXL345_FIFO_SAMPLES_LENGTH
  */
 void AdxlDriver::setFIFOSamples(uint8_t size) {
-    _handle.writeSmbusBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_SAMPLES_BIT, ADXL345_FIFO_SAMPLES_LENGTH, size);
+    _handle.writeBits(ADXL345_RA_FIFO_CTL, ADXL345_FIFO_SAMPLES_BIT, ADXL345_FIFO_SAMPLES_LENGTH, size);
 }
 
 // FIFO_STATUS register
@@ -1657,7 +1657,7 @@ void AdxlDriver::setFIFOSamples(uint8_t size) {
  * @see ADXL345_FIFOSTAT_TRIGGER_BIT
  */
 bool AdxlDriver::getFIFOTriggerOccurred() {
-    return _handle.readSmbusBit(ADXL345_RA_FIFO_STATUS, ADXL345_FIFOSTAT_TRIGGER_BIT);
+    return _handle.readBit(ADXL345_RA_FIFO_STATUS, ADXL345_FIFOSTAT_TRIGGER_BIT);
 }
 /** Get FIFO length.
  * These bits report how many data values are stored in FIFO. Access to collect
@@ -1673,5 +1673,5 @@ bool AdxlDriver::getFIFOTriggerOccurred() {
  * @see ADXL345_FIFOSTAT_LENGTH_LENGTH
  */
 uint8_t AdxlDriver::getFIFOLength() {
-    return _handle.readSmbusBits(ADXL345_RA_FIFO_STATUS, ADXL345_FIFOSTAT_LENGTH_BIT, ADXL345_FIFOSTAT_LENGTH_LENGTH);
+    return _handle.readBits(ADXL345_RA_FIFO_STATUS, ADXL345_FIFOSTAT_LENGTH_BIT, ADXL345_FIFOSTAT_LENGTH_LENGTH);
 }

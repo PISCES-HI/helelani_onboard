@@ -77,7 +77,7 @@ Hmc5883lDriver::Hmc5883lDriver(I2CInterface& interface) : _handle(interface) {}
  */
 void Hmc5883lDriver::initialize() {
     // write CONFIG_A register
-    _handle.writeSmbusByte(HMC5883L_RA_CONFIG_A,
+    _handle.writeByte(HMC5883L_RA_CONFIG_A,
         (HMC5883L_AVERAGING_8 << (HMC5883L_CRA_AVERAGE_BIT - HMC5883L_CRA_AVERAGE_LENGTH + 1)) |
         (HMC5883L_RATE_15     << (HMC5883L_CRA_RATE_BIT - HMC5883L_CRA_RATE_LENGTH + 1)) |
         (HMC5883L_BIAS_NORMAL << (HMC5883L_CRA_BIAS_BIT - HMC5883L_CRA_BIAS_LENGTH + 1)));
@@ -94,7 +94,7 @@ void Hmc5883lDriver::initialize() {
  * @return True if connection is valid, false otherwise
  */
 bool Hmc5883lDriver::testConnection() {
-    _handle.readSmbusBytes(HMC5883L_RA_ID_A, 3, _buffer);
+    _handle.readBytes(HMC5883L_RA_ID_A, 3, _buffer);
     return (_buffer[0] == 'H' && _buffer[1] == '4' && _buffer[2] == '3');
 }
 
@@ -108,7 +108,7 @@ bool Hmc5883lDriver::testConnection() {
  * @see HMC5883L_CRA_AVERAGE_LENGTH
  */
 uint8_t Hmc5883lDriver::getSampleAveraging() {
-    return _handle.readSmbusBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_AVERAGE_BIT, HMC5883L_CRA_AVERAGE_LENGTH);
+    return _handle.readBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_AVERAGE_BIT, HMC5883L_CRA_AVERAGE_LENGTH);
 }
 /** Set number of samples averaged per measurement.
  * @param averaging New samples averaged per measurement setting(0-3 for 1/2/4/8 respectively)
@@ -117,7 +117,7 @@ uint8_t Hmc5883lDriver::getSampleAveraging() {
  * @see HMC5883L_CRA_AVERAGE_LENGTH
  */
 void Hmc5883lDriver::setSampleAveraging(uint8_t averaging) {
-    _handle.writeSmbusBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_AVERAGE_BIT, HMC5883L_CRA_AVERAGE_LENGTH, averaging);
+    _handle.writeBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_AVERAGE_BIT, HMC5883L_CRA_AVERAGE_LENGTH, averaging);
 }
 /** Get data output rate value.
  * The Table below shows all selectable output rates in continuous measurement
@@ -143,7 +143,7 @@ void Hmc5883lDriver::setSampleAveraging(uint8_t averaging) {
  * @see HMC5883L_CRA_RATE_LENGTH
  */
 uint8_t Hmc5883lDriver::getDataRate() {
-    return _handle.readSmbusBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_RATE_BIT, HMC5883L_CRA_RATE_LENGTH);
+    return _handle.readBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_RATE_BIT, HMC5883L_CRA_RATE_LENGTH);
 }
 /** Set data output rate value.
  * @param rate Rate of data output to registers
@@ -154,7 +154,7 @@ uint8_t Hmc5883lDriver::getDataRate() {
  * @see HMC5883L_CRA_RATE_LENGTH
  */
 void Hmc5883lDriver::setDataRate(uint8_t rate) {
-    _handle.writeSmbusBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_RATE_BIT, HMC5883L_CRA_RATE_LENGTH, rate);
+    _handle.writeBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_RATE_BIT, HMC5883L_CRA_RATE_LENGTH, rate);
 }
 /** Get measurement bias value.
  * @return Current bias value (0-2 for normal/positive/negative respectively)
@@ -164,7 +164,7 @@ void Hmc5883lDriver::setDataRate(uint8_t rate) {
  * @see HMC5883L_CRA_BIAS_LENGTH
  */
 uint8_t Hmc5883lDriver::getMeasurementBias() {
-    return _handle.readSmbusBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_BIAS_BIT, HMC5883L_CRA_BIAS_LENGTH);
+    return _handle.readBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_BIAS_BIT, HMC5883L_CRA_BIAS_LENGTH);
 }
 /** Set measurement bias value.
  * @param bias New bias value (0-2 for normal/positive/negative respectively)
@@ -174,7 +174,7 @@ uint8_t Hmc5883lDriver::getMeasurementBias() {
  * @see HMC5883L_CRA_BIAS_LENGTH
  */
 void Hmc5883lDriver::setMeasurementBias(uint8_t bias) {
-    _handle.writeSmbusBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_BIAS_BIT, HMC5883L_CRA_BIAS_LENGTH, bias);
+    _handle.writeBits(HMC5883L_RA_CONFIG_A, HMC5883L_CRA_BIAS_BIT, HMC5883L_CRA_BIAS_LENGTH, bias);
 }
 
 // CONFIG_B register
@@ -203,7 +203,7 @@ void Hmc5883lDriver::setMeasurementBias(uint8_t bias) {
  * @see HMC5883L_CRB_GAIN_LENGTH
  */
 uint8_t Hmc5883lDriver::getGain() {
-    return _handle.readSmbusBits(HMC5883L_RA_CONFIG_B, HMC5883L_CRB_GAIN_BIT, HMC5883L_CRB_GAIN_LENGTH);
+    return _handle.readBits(HMC5883L_RA_CONFIG_B, HMC5883L_CRB_GAIN_BIT, HMC5883L_CRB_GAIN_LENGTH);
 }
 /** Set magnetic field gain value.
  * @param gain New magnetic field gain value
@@ -216,7 +216,7 @@ void Hmc5883lDriver::setGain(uint8_t gain) {
     // use this method to guarantee that bits 4-0 are set to zero, which is a
     // requirement specified in the datasheet; it's actually more efficient than
     // using the I2Cdev.writeBits method
-    _handle.writeSmbusByte(HMC5883L_RA_CONFIG_B, gain << (HMC5883L_CRB_GAIN_BIT - HMC5883L_CRB_GAIN_LENGTH + 1));
+    _handle.writeByte(HMC5883L_RA_CONFIG_B, gain << (HMC5883L_CRB_GAIN_BIT - HMC5883L_CRB_GAIN_LENGTH + 1));
 }
 
 // MODE register
@@ -244,7 +244,7 @@ void Hmc5883lDriver::setGain(uint8_t gain) {
  * @see HMC5883L_MODEREG_LENGTH
  */
 uint8_t Hmc5883lDriver::getMode() {
-    return _handle.readSmbusBits(HMC5883L_RA_MODE, HMC5883L_MODEREG_BIT, HMC5883L_MODEREG_LENGTH);
+    return _handle.readBits(HMC5883L_RA_MODE, HMC5883L_MODEREG_BIT, HMC5883L_MODEREG_LENGTH);
 }
 /** Set measurement mode.
  * @param newMode New measurement mode
@@ -260,7 +260,7 @@ void Hmc5883lDriver::setMode(uint8_t newMode) {
     // use this method to guarantee that bits 7-2 are set to zero, which is a
     // requirement specified in the datasheet; it's actually more efficient than
     // using the I2Cdev.writeBits method
-    _handle.writeSmbusByte(HMC5883L_RA_MODE, newMode << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
+    _handle.writeByte(HMC5883L_RA_MODE, newMode << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
     mode = newMode; // track to tell if we have to clear bit 7 after a read
 }
 
@@ -278,9 +278,9 @@ void Hmc5883lDriver::setMode(uint8_t newMode) {
  * @see HMC5883L_RA_DATAX_H
  */
 void Hmc5883lDriver::getHeading(int16_t *x, int16_t *y, int16_t *z) {
-    _handle.readSmbusBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
+    _handle.readBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
     if (mode == HMC5883L_MODE_SINGLE)
-        _handle.writeSmbusByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
+        _handle.writeByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
     *x = (((int16_t)_buffer[0]) << 8) | _buffer[1];
     *y = (((int16_t)_buffer[4]) << 8) | _buffer[5];
     *z = (((int16_t)_buffer[2]) << 8) | _buffer[3];
@@ -292,9 +292,9 @@ void Hmc5883lDriver::getHeading(int16_t *x, int16_t *y, int16_t *z) {
 int16_t Hmc5883lDriver::getHeadingX() {
     // each axis read requires that ALL axis registers be read, even if only
     // one is used; this was not done ineffiently in the code by accident
-    _handle.readSmbusBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
+    _handle.readBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
     if (mode == HMC5883L_MODE_SINGLE)
-        _handle.writeSmbusByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
+        _handle.writeByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
     return (((int16_t)_buffer[0]) << 8) | _buffer[1];
 }
 /** Get Y-axis heading measurement.
@@ -304,9 +304,9 @@ int16_t Hmc5883lDriver::getHeadingX() {
 int16_t Hmc5883lDriver::getHeadingY() {
     // each axis read requires that ALL axis registers be read, even if only
     // one is used; this was not done ineffiently in the code by accident
-    _handle.readSmbusBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
+    _handle.readBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
     if (mode == HMC5883L_MODE_SINGLE)
-        _handle.writeSmbusByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
+        _handle.writeByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
     return (((int16_t)_buffer[4]) << 8) | _buffer[5];
 }
 /** Get Z-axis heading measurement.
@@ -316,9 +316,9 @@ int16_t Hmc5883lDriver::getHeadingY() {
 int16_t Hmc5883lDriver::getHeadingZ() {
     // each axis read requires that ALL axis registers be read, even if only
     // one is used; this was not done ineffiently in the code by accident
-    _handle.readSmbusBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
+    _handle.readBytes(HMC5883L_RA_DATAX_H, 6, _buffer);
     if (mode == HMC5883L_MODE_SINGLE)
-        _handle.writeSmbusByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
+        _handle.writeByte(HMC5883L_RA_MODE, HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1));
     return (((int16_t)_buffer[2]) << 8) | _buffer[3];
 }
 
@@ -336,7 +336,7 @@ int16_t Hmc5883lDriver::getHeadingZ() {
  * @see HMC5883L_STATUS_LOCK_BIT
  */
 bool Hmc5883lDriver::getLockStatus() {
-    return _handle.readSmbusBit(HMC5883L_RA_STATUS, HMC5883L_STATUS_LOCK_BIT);
+    return _handle.readBit(HMC5883L_RA_STATUS, HMC5883L_STATUS_LOCK_BIT);
 }
 /** Get data ready status.
  * This bit is set when data is written to all six data registers, and cleared
@@ -349,7 +349,7 @@ bool Hmc5883lDriver::getLockStatus() {
  * @see HMC5883L_STATUS_READY_BIT
  */
 bool Hmc5883lDriver::getReadyStatus() {
-    return _handle.readSmbusBit(HMC5883L_RA_STATUS, HMC5883L_STATUS_READY_BIT);
+    return _handle.readBit(HMC5883L_RA_STATUS, HMC5883L_STATUS_READY_BIT);
 }
 
 // ID_* registers
@@ -358,17 +358,17 @@ bool Hmc5883lDriver::getReadyStatus() {
  * @return ID_A byte (should be 01001000, ASCII value 'H')
  */
 uint8_t Hmc5883lDriver::getIDA() {
-    return _handle.readSmbusByte(HMC5883L_RA_ID_A);
+    return _handle.readByte(HMC5883L_RA_ID_A);
 }
 /** Get identification byte B
  * @return ID_A byte (should be 00110100, ASCII value '4')
  */
 uint8_t Hmc5883lDriver::getIDB() {
-    return _handle.readSmbusByte(HMC5883L_RA_ID_B);
+    return _handle.readByte(HMC5883L_RA_ID_B);
 }
 /** Get identification byte C
  * @return ID_A byte (should be 00110011, ASCII value '3')
  */
 uint8_t Hmc5883lDriver::getIDC() {
-    return _handle.readSmbusByte(HMC5883L_RA_ID_C);
+    return _handle.readByte(HMC5883L_RA_ID_C);
 }
