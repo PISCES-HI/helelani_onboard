@@ -1,7 +1,6 @@
 #ifndef GPSREADER_H
 #define GPSREADER_H
 
-#include <stdio.h>
 #include <thread>
 #include <mutex>
 #include <gps_common/GPSFix.h>

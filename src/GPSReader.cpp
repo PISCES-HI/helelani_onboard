@@ -2,18 +2,38 @@
 #include "minmea.h"
 #include <ros/node_handle.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <stdio.h>
 
 GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
 : m_gpsPub(n.advertise<gps_common::GPSFix>("/helelani/gps", 1000))
 {
     m_thread = std::thread([this, &path]()
     {
-        FILE* fp = fopen(path.c_str(), "r");
-        if (!fp) {
+        // Open file descriptor
+        int fd = open(path.c_str(), O_RDONLY);
+        if (!fd) {
             ROS_ERROR("Unable to start GPS reader thread: %s", strerror(errno));
             return;
         }
 
+        // Set serial parameters and wrap in FILE stream
+        speed_t baud = B38400;
+        struct termios settings;
+        tcgetattr(fd, &settings);
+        cfsetospeed(&settings, baud);
+        settings.c_cflag &= ~PARENB;
+        settings.c_cflag &= ~CSTOPB;
+        settings.c_cflag &= ~CSIZE;
+        settings.c_cflag |= CS8 | CLOCAL;
+        settings.c_iflag |= ICANON;
+        settings.c_oflag &= ~OPOST;
+        tcsetattr(fd, TCSANOW, &settings);
+        tcflush(fd, TCOFLUSH);
+        FILE* fp = fdopen(fd, "r");
+
+        // Lists to assemble satellite objects
         gps_common::GPSStatus::_satellites_used_type satellites_used = 0;
         gps_common::GPSStatus::_satellite_used_prn_type satellite_used_prn;
         gps_common::GPSStatus::_satellites_visible_type satellites_visible = 0;
@@ -22,6 +42,7 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
         gps_common::GPSStatus::_satellite_visible_azimuth_type satellite_visible_azimuth;
         gps_common::GPSStatus::_satellite_visible_snr_type satellite_visible_snr;
 
+        // Parse NMEA sentence
         char line[MINMEA_MAX_LENGTH];
         while (m_running) {
             if (fgets(line, sizeof(line), fp) != nullptr) {
@@ -114,7 +135,9 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
             }
         }
 
+        // Cleanup
         fclose(fp);
+        close(fd);
     });
 }
 
