@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <helelani_common/Imu.h>
+#include <helelani_common/Motor.h>
 
 #include <sys/types.h>
 #include <fcntl.h>
@@ -12,6 +13,7 @@
 #include "Hmc5883lDriver.h"
 #include "AdxlDriver.h"
 #include "Bmp085Driver.h"
+#include "CANTelemetry.h"
 
 class RoverTelemetry
 {
@@ -20,9 +22,13 @@ class RoverTelemetry
     Hmc5883lDriver m_mag;
     Bmp085Driver m_bmp;
     GPSReader m_gps;
+    CANMotorData m_leftMotor;
+    CANMotorData m_rightMotor;
 
     helelani_common::Imu m_imu;
     ros::Publisher m_imuPub;
+    ros::Publisher m_leftMotorPub;
+    ros::Publisher m_rightMotorPub;
 public:
     RoverTelemetry(ros::NodeHandle& n,
                    I2CInterface& upperAxdlIntf,
@@ -35,7 +41,11 @@ public:
       m_mag(upperMagIntf),
       m_bmp(upperBmp),
       m_gps(n, gpsPath),
-      m_imuPub(n.advertise<helelani_common::Imu>("/helelani/imu", 1000))
+      m_leftMotor("canLeft"),
+      m_rightMotor("canRight"),
+      m_imuPub(n.advertise<helelani_common::Imu>("/helelani/imu", 1000)),
+      m_leftMotorPub(n.advertise<helelani_common::Imu>("/helelani/left_motor_telemetry", 1000)),
+      m_rightMotorPub(n.advertise<helelani_common::Imu>("/helelani/right_motor_telemetry", 1000))
     {
         m_adxl.initialize();
         m_adxl.setOffsetZ(7);
@@ -46,7 +56,6 @@ public:
 
     void update()
     {
-
         m_imu.accel.x = m_adxl.getAccelerationX();
         m_imu.accel.y = m_adxl.getAccelerationY();
         m_imu.accel.z = m_adxl.getAccelerationZ();
@@ -68,6 +77,14 @@ public:
         m_imuPub.publish(m_imu);
 
         m_gps.PublishReading();
+
+        helelani_common::Motor leftMotorData;
+        leftMotorData.current = m_leftMotor.getCurrent();
+        m_leftMotorPub.publish(leftMotorData);
+
+        helelani_common::Motor rightMotorData;
+        rightMotorData.current = m_rightMotor.getCurrent();
+        m_rightMotorPub.publish(rightMotorData);
     }
 };
 
@@ -79,13 +96,14 @@ int main(int argc, char *argv[])
 
     // Find upper DLN
     std::string upper_i2c_path;
-    if (!find_upper_dln(upper_i2c_path))
-        return -1;
+    //if (!find_upper_dln(upper_i2c_path))
+    //    return -1;
 
     // Find lower DLN
     std::string lower_i2c_path, iio_root;
-    //if (!find_lower_dln(lower_i2c_path, iio_root))
-    //    return -1;
+    int gpio_base = -1;
+    if (!find_lower_dln(lower_i2c_path, iio_root, gpio_base))
+        return -1;
 
     // Find GPS
     std::string gps_path;

@@ -23,6 +23,7 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
         struct termios settings;
         tcgetattr(fd, &settings);
         cfsetospeed(&settings, baud);
+        cfsetispeed(&settings, baud);
         settings.c_cflag &= ~PARENB;
         settings.c_cflag &= ~CSTOPB;
         settings.c_cflag &= ~CSIZE;
@@ -113,25 +114,25 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
                 } break;
                 default: break;
                 }
-            }
 
-            if (satellite_used_prn.size() == satellites_used) {
-                m_reading.status.satellites_used = satellites_used;
-                m_reading.status.satellite_used_prn = satellite_used_prn;
-                satellite_used_prn.clear();
-            }
+                if (satellite_used_prn.size() == satellites_used) {
+                    m_reading.status.satellites_used = satellites_used;
+                    m_reading.status.satellite_used_prn = satellite_used_prn;
+                    satellite_used_prn.clear();
+                }
 
-            if (satellite_visible_prn.size() == satellites_visible) {
-                m_reading.status.satellites_visible = satellites_visible;
-                m_reading.status.satellite_visible_prn = satellite_visible_prn;
-                m_reading.status.satellite_visible_z = satellite_visible_z;
-                m_reading.status.satellite_visible_azimuth = satellite_visible_azimuth;
-                m_reading.status.satellite_visible_snr = satellite_visible_snr;
-                satellite_visible_prn.clear();
-                satellite_visible_z.clear();
-                satellite_visible_azimuth.clear();
-                satellite_visible_snr.clear();
-                m_dataReady = true;
+                if (satellite_visible_prn.size() == satellites_visible) {
+                    m_reading.status.satellites_visible = satellites_visible;
+                    m_reading.status.satellite_visible_prn = satellite_visible_prn;
+                    m_reading.status.satellite_visible_z = satellite_visible_z;
+                    m_reading.status.satellite_visible_azimuth = satellite_visible_azimuth;
+                    m_reading.status.satellite_visible_snr = satellite_visible_snr;
+                    satellite_visible_prn.clear();
+                    satellite_visible_z.clear();
+                    satellite_visible_azimuth.clear();
+                    satellite_visible_snr.clear();
+                    m_dataReady = true;
+                }
             }
         }
 

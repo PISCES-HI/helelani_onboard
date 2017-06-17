@@ -50,7 +50,8 @@ bool find_upper_dln(std::string& i2c_path)
     return true;
 }
 
-bool find_lower_dln(std::string& i2c_path, std::string& iio_root)
+bool find_lower_dln(std::string& i2c_path, std::string& iio_root,
+                    int& gpio_base)
 {
     struct udev* udev = udev_new();
     if (!udev) {
@@ -80,6 +81,13 @@ bool find_lower_dln(std::string& i2c_path, std::string& iio_root)
                 i2c_path = udev_device_get_devnode(chdev);
             else if (!strcmp(subsystem, "iio"))
                 iio_root = path;
+            else if (!strcmp(subsystem, "gpio")) {
+                if (strstr(path, "gpiochip")) {
+                    if (const char* base = udev_device_get_sysattr_value(chdev, "base")) {
+                        gpio_base = atoi(base);
+                    }
+                }
+            }
         }
         udev_device_unref(chdev);
     }
