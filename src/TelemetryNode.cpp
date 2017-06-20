@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <helelani_common/Imu.h>
-#include <helelani_common/Motor.h>
+#include <helelani_common/Motors.h>
 
 #include <sys/types.h>
 #include <fcntl.h>
@@ -14,6 +14,7 @@
 #include "AdxlDriver.h"
 #include "Bmp085Driver.h"
 #include "CANTelemetry.h"
+#include "GPIODriver.h"
 
 class RoverTelemetry
 {
@@ -24,18 +25,19 @@ class RoverTelemetry
     GPSReader m_gps;
     CANMotorData m_leftMotor;
     CANMotorData m_rightMotor;
+    GPIODriver m_gpio;
 
     helelani_common::Imu m_imu;
     ros::Publisher m_imuPub;
-    ros::Publisher m_leftMotorPub;
-    ros::Publisher m_rightMotorPub;
+    ros::Publisher m_motorPub;
 public:
     RoverTelemetry(ros::NodeHandle& n,
                    I2CInterface& upperAxdlIntf,
                    I2CInterface& upperMagIntf,
                    I2CInterface& upperBmp,
                    IIOAnalogInterface& lowerAnalog,
-                   const std::string& gpsPath)
+                   const std::string& gpsPath,
+                   int gpioBase)
     : m_lowerAnalog(lowerAnalog),
       m_adxl(upperAxdlIntf),
       m_mag(upperMagIntf),
@@ -43,9 +45,9 @@ public:
       m_gps(n, gpsPath),
       m_leftMotor("canLeft"),
       m_rightMotor("canRight"),
+      m_gpio(gpioBase),
       m_imuPub(n.advertise<helelani_common::Imu>("/helelani/imu", 1000)),
-      m_leftMotorPub(n.advertise<helelani_common::Imu>("/helelani/left_motor_telemetry", 1000)),
-      m_rightMotorPub(n.advertise<helelani_common::Imu>("/helelani/right_motor_telemetry", 1000))
+      m_motorPub(n.advertise<helelani_common::Motors>("/helelani/motors", 1000))
     {
         m_adxl.initialize();
         m_adxl.setOffsetZ(7);
@@ -78,13 +80,22 @@ public:
 
         m_gps.PublishReading();
 
-        helelani_common::Motor leftMotorData;
-        leftMotorData.current = m_leftMotor.getCurrent();
-        m_leftMotorPub.publish(leftMotorData);
+        helelani_common::Motors motorsOut;
+        SCANMotorData leftMotor = m_leftMotor.getData();
+        SCANMotorData rightMotor = m_rightMotor.getData();
 
-        helelani_common::Motor rightMotorData;
-        rightMotorData.current = m_rightMotor.getCurrent();
-        m_rightMotorPub.publish(rightMotorData);
+        bool leftHiGear = m_gpio.readPin(24);
+        bool rightHiGear = m_gpio.readPin(25);
+
+        motorsOut.left_current = leftMotor.getCurrent();
+        motorsOut.left_speed = leftMotor.getSpeed(leftHiGear);
+        motorsOut.left_higear = leftHiGear;
+        motorsOut.right_current = rightMotor.getCurrent();
+        motorsOut.right_speed = rightMotor.getSpeed(rightHiGear);
+        motorsOut.right_higear = rightHiGear;
+
+        motorsOut.header.stamp = ros::Time::now();
+        m_motorPub.publish(motorsOut);
     }
 };
 
@@ -129,7 +140,8 @@ int main(int argc, char *argv[])
     IIOAnalogInterface lower_analog(iio_root);
 
     // Construct telemetry class
-    RoverTelemetry tele(n, upper_axdl, upper_mag, upper_bmp, lower_analog, gps_path);
+    RoverTelemetry tele(n, upper_axdl, upper_mag, upper_bmp,
+                        lower_analog, gps_path, gpio_base);
 
     // Begin update loop
     ros::Rate r(10); // 10 hz

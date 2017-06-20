@@ -42,7 +42,8 @@ add_executable(${PROJECT_NAME}_telemetry_node
                src/analog.cpp src/analog.h
                src/minmea.cpp src/minmea.h
                src/GPSReader.cpp src/GPSReader.h
-               src/CANTelemetry.cpp src/CANTelemetry.h)
+               src/CANTelemetry.cpp src/CANTelemetry.h
+               src/GPIODriver.cpp src/GPIODriver.h)
 
 add_executable(${PROJECT_NAME}_navigation_node
               src/NavigationNode.cpp)

@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-void CANConnection::CommTask()
+void CANMotorData::CommTask(std::string interface)
 {
     struct sockaddr_can addr;
     struct ifreq ifr;
@@ -23,7 +23,7 @@ void CANConnection::CommTask()
 
     if (bind(m_socket, (struct sockaddr *)&addr, sizeof(addr))) {
         fprintf(stderr, "Unable to bind %s\n", strerror(errno));
-        return 1;
+        m_running = false;
     }
 
     while (m_running)
@@ -52,31 +52,21 @@ void CANConnection::CommTask()
     close(m_socket);
 }
 
-SCANMotorData CANConnection::getData() const
+SCANMotorData CANMotorData::getData()
 {
     std::lock_guard<std::mutex> lk(m_mutex);
     return m_data;
 }
 
-CANConnection::CANConnection(const std::string& interface)
+CANMotorData::CANMotorData(const std::string& interface)
 {
-    m_thread = std::thread(std::bind(&CANConnection::CommTask, this));
+    m_thread = std::thread(std::bind(&CANMotorData::CommTask, this, interface));
 }
 
-CANConnection::~CANConnection()
+CANMotorData::~CANMotorData()
 {
     m_running = false;
     pthread_kill(m_thread.native_handle(), SIGINT);
     if (m_thread.joinable())
         m_thread.join();
-}
-
-CANMotorData::CANMotorData(const std::string& interface)
-: CANConnection(interface)
-{}
-
-float CANMotorData::getCurrent() const
-{
-    SCANMotorData data = getData();
-    return data.current / 160.f;
 }
