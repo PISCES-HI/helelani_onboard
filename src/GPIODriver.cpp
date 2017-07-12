@@ -9,15 +9,16 @@
 GPIODriver::GPIODriver(int base)
 {
     char path[256];
-    for (int i=0 ; i<32 ; ++i) {
-        snprintf(path, 32, "/sys/class/gpio%d/value", base+i);
+    for (int i=0 ; i<8 ; ++i) {
+        // Read pins starting at 24 (to avoid ADC conflicts)
+        snprintf(path, 32, "/sys/class/gpio%d/value", base+24+i);
         m_fds[i] = open(path, O_RDONLY);
     }
 }
 
 GPIODriver::~GPIODriver()
 {
-    for (int i=0 ; i<32 ; ++i) {
+    for (int i=0 ; i<8 ; ++i) {
         close(m_fds[i]);
     }
 }

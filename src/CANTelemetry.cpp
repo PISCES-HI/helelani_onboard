@@ -66,7 +66,9 @@ CANMotorData::CANMotorData(const std::string& interface)
 CANMotorData::~CANMotorData()
 {
     m_running = false;
-    pthread_kill(m_thread.native_handle(), SIGINT);
     if (m_thread.joinable())
+    {
+        pthread_kill(m_thread.native_handle(), SIGUSR1);
         m_thread.join();
+    }
 }

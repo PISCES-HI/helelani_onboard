@@ -3,7 +3,7 @@
 
 class GPIODriver
 {
-    int m_fds[32];
+    int m_fds[8];
 public:
     GPIODriver(int base);
     ~GPIODriver();

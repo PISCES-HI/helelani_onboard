@@ -1,8 +1,11 @@
 #include "DlnFinders.h"
 #include <ros/console.h>
 
-#define UPPER_DLN_PATH "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4:1.0"
-#define LOWER_DLN_PATH "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-3/1-3:1.0"
+/* Upper header, hub port 5/7 */
+#define UPPER_DLN_PATH "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-6/1-6.4/1-6.4.2/1-6.4.2:1.0"
+
+/* Lower header, hub port 2/4 */
+#define LOWER_DLN_PATH "/sys/devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5.4/1-5.4:1.0"
 
 bool find_upper_dln(std::string& i2c_path)
 {
@@ -50,7 +53,7 @@ bool find_upper_dln(std::string& i2c_path)
     return true;
 }
 
-bool find_lower_dln(std::string& i2c_path, std::string& iio_root,
+bool find_lower_dln(std::string& i2c_path, std::string& iio_dev,
                     int& gpio_base)
 {
     struct udev* udev = udev_new();
@@ -80,7 +83,7 @@ bool find_lower_dln(std::string& i2c_path, std::string& iio_root,
             if (!strcmp(subsystem, "i2c-dev"))
                 i2c_path = udev_device_get_devnode(chdev);
             else if (!strcmp(subsystem, "iio"))
-                iio_root = path;
+                iio_dev = udev_device_get_devnode(chdev);
             else if (!strcmp(subsystem, "gpio")) {
                 if (strstr(path, "gpiochip")) {
                     if (const char* base = udev_device_get_sysattr_value(chdev, "base")) {
@@ -100,7 +103,7 @@ bool find_lower_dln(std::string& i2c_path, std::string& iio_root,
         return false;
     }
 
-    if (iio_root.empty()) {
+    if (iio_dev.empty()) {
         ROS_ERROR("Can't find lower avionics ADC at %s", UPPER_DLN_PATH);
         return false;
     }

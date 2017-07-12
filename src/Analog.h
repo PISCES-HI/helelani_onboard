@@ -2,14 +2,19 @@
 #define ANALOG_H
 
 #include <string>
+#include <thread>
+#include <mutex>
 
 class IIOAnalogInterface
 {
-    int m_fds[8];
+    std::thread m_thread;
+    std::mutex m_mutex;
+    uint16_t m_values[8] = {};
+    bool m_running = true;
 public:
-    IIOAnalogInterface(const std::string& root);
+    IIOAnalogInterface(const std::string& dev);
     ~IIOAnalogInterface();
-    int GetChannelValue(int chan) const;
+    uint16_t GetChannelValue(int chan);
 };
 
 float read_voltage(const uint16_t analog_reading, const float r1, const float r2);

@@ -5,15 +5,16 @@
 
 #include "i2c.h"
 
-I2CInterface::I2CInterface(const std::string& path, int addr)
+I2CInterface::I2CInterface(const std::string& path)
 {
+    if (path.empty())
+        return;
+
     m_fd = open(path.c_str(), O_RDWR);
     if (!m_fd) {
         ROS_ERROR("Unable to open %s: %s", path.c_str(), strerror(errno));
         return;
     }
-    if (ioctl(m_fd, I2C_SLAVE, addr) < 0)
-        ROS_ERROR("Unable to ioctl I2C with address %d %s", addr, strerror(errno));
 }
 
 I2CInterface::~I2CInterface()
@@ -21,23 +22,33 @@ I2CInterface::~I2CInterface()
     close(m_fd);
 }
 
+int I2CInterface::setAddr(int addr)
+{
+    if (!m_fd)
+        return -EINVAL;
+    int ret  = ioctl(m_fd, I2C_SLAVE, addr);
+    if (ret < 0)
+        ROS_ERROR("Unable to ioctl I2C with address: %d %s", addr, strerror(errno));
+    return ret;
+}
+
 int I2CInterface::read(unsigned len, uint8_t* buf) const
 {
+    if (!m_fd)
+        return -EINVAL;
     int ret = ::read(m_fd, buf, len);
-    if (ret < 0) {
-        ROS_ERROR("Unable to read I2C %s", strerror(errno));
-        return 0;
-    }
+    if (ret < 0)
+        ROS_ERROR("Unable to read I2C: %s", strerror(errno));
     return ret;
 }
 
 int I2CInterface::write(unsigned len, const uint8_t* buf) const
 {
+    if (!m_fd)
+        return -EINVAL;
     int ret = ::write(m_fd, buf, len);
-    if (ret < 0) {
-        ROS_ERROR("Unable to write I2C %s", strerror(errno));
-        return 0;
-    }
+    if (ret < 0)
+        ROS_ERROR("Unable to write I2C: %s", strerror(errno));
     return ret;
 }
 
@@ -72,7 +83,8 @@ int I2CInterface::writeBytes(uint8_t command, unsigned len, const uint8_t* bytes
         len = 32;
     uint8_t buf[33];
     buf[0] = command;
-    memcpy(buf+1, bytes, len);
+    if (len)
+        memcpy(buf+1, bytes, len);
     if (write(len+1, buf) < 0)
         return -1;
     return 0;

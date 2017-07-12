@@ -5,10 +5,15 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <signal.h>
 
 GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
-: m_gpsPub(n.advertise<gps_common::GPSFix>("/helelani/gps", 1000))
+: m_gpsFixPub(n.advertise<gps_common::GPSFix>("/helelani/gps_fix", 1000)),
+  m_navSatFixPub(n.advertise<sensor_msgs::NavSatFix>("/helelani/nav_sat_fix", 1000))
 {
+    if (path.empty())
+        return;
+
     m_thread = std::thread([this, &path]()
     {
         // Open file descriptor
@@ -54,34 +59,34 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
                 case MINMEA_SENTENCE_RMC: {
                     struct minmea_sentence_rmc frame;
                     if (minmea_parse_rmc(&frame, line)) {
-                        m_reading.latitude = minmea_tocoord(&frame.latitude);
-                        m_reading.longitude = minmea_tocoord(&frame.longitude);
-                        m_reading.speed = minmea_tofloat(&frame.speed);
-                        m_reading.track = minmea_tofloat(&frame.course);
+                        m_gpsFix.latitude = minmea_tocoord(&frame.latitude);
+                        m_gpsFix.longitude = minmea_tocoord(&frame.longitude);
+                        m_gpsFix.speed = minmea_tofloat(&frame.speed);
+                        m_gpsFix.track = minmea_tofloat(&frame.course);
                     }
                 } break;
                 case MINMEA_SENTENCE_GGA: {
                     struct minmea_sentence_gga frame;
                     if (minmea_parse_gga(&frame, line)) {
-                        m_reading.latitude = minmea_tocoord(&frame.latitude);
-                        m_reading.longitude = minmea_tocoord(&frame.longitude);
-                        m_reading.altitude = minmea_tofloat(&frame.altitude);
+                        m_gpsFix.latitude = minmea_tocoord(&frame.latitude);
+                        m_gpsFix.longitude = minmea_tocoord(&frame.longitude);
+                        m_gpsFix.altitude = minmea_tofloat(&frame.altitude);
                         satellites_used = frame.satellites_tracked;
 
                         switch (frame.fix_quality) {
                         case 0: // No fix
                         default:
-                            m_reading.status.status = gps_common::GPSStatus::STATUS_NO_FIX;
+                            m_gpsFix.status.status = gps_common::GPSStatus::STATUS_NO_FIX;
                             break;
                         case 1: // GPS
-                            m_reading.status.status = gps_common::GPSStatus::STATUS_FIX;
+                            m_gpsFix.status.status = gps_common::GPSStatus::STATUS_FIX;
                             break;
                         case 2: // DGPS
-                            m_reading.status.status = gps_common::GPSStatus::STATUS_DGPS_FIX;
+                            m_gpsFix.status.status = gps_common::GPSStatus::STATUS_DGPS_FIX;
                             break;
                         }
 
-                        m_reading.status.position_source = gps_common::GPSStatus::SOURCE_GPS;
+                        m_gpsFix.status.position_source = gps_common::GPSStatus::SOURCE_GPS;
                     }
                 } break;
                 case MINMEA_SENTENCE_GSA: {
@@ -90,9 +95,9 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
                         for (int i=0 ; i<12 ; ++i)
                             if (frame.sats[i])
                                 satellite_used_prn.push_back(frame.sats[i]);
-                        m_reading.pdop = minmea_tofloat(&frame.pdop);
-                        m_reading.hdop = minmea_tofloat(&frame.hdop);
-                        m_reading.vdop = minmea_tofloat(&frame.vdop);
+                        m_gpsFix.pdop = minmea_tofloat(&frame.pdop);
+                        m_gpsFix.hdop = minmea_tofloat(&frame.hdop);
+                        m_gpsFix.vdop = minmea_tofloat(&frame.vdop);
                     }
                 } break;
                 case MINMEA_SENTENCE_GSV: {
@@ -116,22 +121,22 @@ GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
                 }
 
                 if (satellite_used_prn.size() == satellites_used) {
-                    m_reading.status.satellites_used = satellites_used;
-                    m_reading.status.satellite_used_prn = satellite_used_prn;
+                    m_gpsFix.status.satellites_used = satellites_used;
+                    m_gpsFix.status.satellite_used_prn = satellite_used_prn;
                     satellite_used_prn.clear();
                 }
 
                 if (satellite_visible_prn.size() == satellites_visible) {
-                    m_reading.status.satellites_visible = satellites_visible;
-                    m_reading.status.satellite_visible_prn = satellite_visible_prn;
-                    m_reading.status.satellite_visible_z = satellite_visible_z;
-                    m_reading.status.satellite_visible_azimuth = satellite_visible_azimuth;
-                    m_reading.status.satellite_visible_snr = satellite_visible_snr;
+                    m_gpsFix.status.satellites_visible = satellites_visible;
+                    m_gpsFix.status.satellite_visible_prn = satellite_visible_prn;
+                    m_gpsFix.status.satellite_visible_z = satellite_visible_z;
+                    m_gpsFix.status.satellite_visible_azimuth = satellite_visible_azimuth;
+                    m_gpsFix.status.satellite_visible_snr = satellite_visible_snr;
                     satellite_visible_prn.clear();
                     satellite_visible_z.clear();
                     satellite_visible_azimuth.clear();
                     satellite_visible_snr.clear();
-                    m_dataReady = true;
+                    PublishReading();
                 }
             }
         }
@@ -146,16 +151,23 @@ GPSReader::~GPSReader()
 {
     m_running = false;
     if (m_thread.joinable())
+    {
+        pthread_kill(m_thread.native_handle(), SIGUSR1);
         m_thread.join();
+    }
 }
 
 void GPSReader::PublishReading()
 {
-    std::lock_guard<std::mutex> lk(m_lock);
-    if (m_dataReady) {
-        m_reading.header.stamp = ros::Time::now();
-        m_reading.status.header.stamp = m_reading.header.stamp;
-        m_gpsPub.publish(m_reading);
-        m_dataReady = false;
-    }
+    m_gpsFix.header.stamp = ros::Time::now();
+    m_gpsFix.status.header.stamp = m_gpsFix.header.stamp;
+    m_navSatFix.header.stamp = m_gpsFix.header.stamp;
+    m_navSatFix.status.status = (m_gpsFix.status.status > gps_common::GPSStatus::STATUS_NO_FIX) ?
+        int(sensor_msgs::NavSatStatus::STATUS_FIX) : int(sensor_msgs::NavSatStatus::STATUS_NO_FIX);
+    m_navSatFix.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
+    m_navSatFix.latitude = m_gpsFix.latitude;
+    m_navSatFix.longitude = m_gpsFix.longitude;
+    m_navSatFix.altitude = m_gpsFix.altitude;
+    m_gpsFixPub.publish(m_gpsFix);
+    m_navSatFixPub.publish(m_navSatFix);
 }

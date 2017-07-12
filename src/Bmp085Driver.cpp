@@ -112,7 +112,7 @@ uint16_t Bmp085Driver::getRawTemperature() {
     return 0; // wrong measurement mode for temperature request
 }
 
-float Bmp085Driver::getTemperatureC() {
+double Bmp085Driver::getTemperatureC() {
     /*
     Datasheet formula:
         UT = raw temperature
@@ -125,10 +125,10 @@ float Bmp085Driver::getTemperatureC() {
     int32_t x1 = ((ut - (int32_t)ac6) * (int32_t)ac5) >> 15;
     int32_t x2 = ((int32_t)mc << 11) / (x1 + md);
     b5 = x1 + x2;
-    return (float)((b5 + 8) >> 4) / 10.0f;
+    return ((b5 + 8) >> 4) / 10.0;
 }
 
-float Bmp085Driver::getTemperatureF() {
+double Bmp085Driver::getTemperatureF() {
     return getTemperatureC() * 9.0f / 5.0f + 32;
 }
 
@@ -137,7 +137,7 @@ uint32_t Bmp085Driver::getRawPressure() {
     return 0; // wrong measurement mode for pressure request
 }
 
-float Bmp085Driver::getPressure() {
+double Bmp085Driver::getPressure() {
     /*
     Datasheet forumla
         UP = raw pressure
@@ -182,7 +182,7 @@ float Bmp085Driver::getPressure() {
     return p + ((x1 + x2 + (int32_t)3791) >> 4);
 }
 
-float Bmp085Driver::getAltitude(float pressure, float seaLevelPressure) {
+double Bmp085Driver::getAltitude(double pressure, double seaLevelPressure) {
     return 44330 * (1.0 - pow(pressure / seaLevelPressure, 0.1903));
 }
 

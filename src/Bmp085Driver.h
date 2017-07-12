@@ -31,11 +31,11 @@ class Bmp085Driver {
         // convenience methods
         void        loadCalibration();
         uint16_t    getRawTemperature();
-        float       getTemperatureC();
-        float       getTemperatureF();
+        double      getTemperatureC();
+        double      getTemperatureF();
         uint32_t    getRawPressure();
-        float       getPressure();
-        float       getAltitude(float pressure, float seaLevelPressure=101325);
+        double      getPressure();
+        double      getAltitude(double pressure, double seaLevelPressure=101325);
 
     private:
         I2CInterface& _handle;
