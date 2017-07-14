@@ -80,7 +80,7 @@ public:
     void writeReg(uint8_t reg, uint8_t value);
     uint8_t readReg(uint8_t reg);
 
-    void read(bool& ready);
+    bool read();
 
     void setTimeout(unsigned int timeout);
     unsigned int getTimeout(void);

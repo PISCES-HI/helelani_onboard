@@ -38,7 +38,6 @@ add_executable(${PROJECT_NAME}_telemetry_node
                src/AdxlDriver.cpp src/AdxlDriver.h
                src/L3G4200Driver.cpp src/L3G4200Driver.h
                src/Bmp085Driver.cpp src/Bmp085Driver.h
-               src/PwmDriver.cpp src/PwmDriver.h
                src/i2c.cpp src/i2c.h
                src/Analog.cpp src/Analog.h
                src/minmea.cpp src/minmea.h
@@ -49,17 +48,26 @@ add_executable(${PROJECT_NAME}_telemetry_node
 add_executable(${PROJECT_NAME}_navigation_node
               src/NavigationNode.cpp)
 
+add_executable(${PROJECT_NAME}_camera_node
+               src/CameraNode.cpp
+               src/DlnFinders.cpp src/DlnFinders.h
+               src/PwmDriver.cpp src/PwmDriver.h
+               src/i2c.cpp src/i2c.h)
+
 ## Rename C++ executable without prefix
 set_target_properties(${PROJECT_NAME}_telemetry_node PROPERTIES OUTPUT_NAME telemetry_node PREFIX "")
 set_target_properties(${PROJECT_NAME}_navigation_node PROPERTIES OUTPUT_NAME navigation_node PREFIX "")
+set_target_properties(${PROJECT_NAME}_camera_node PROPERTIES OUTPUT_NAME camera_node PREFIX "")
 
 ## Add cmake target dependencies of the executables
 add_dependencies(${PROJECT_NAME}_telemetry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME}_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_camera_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_telemetry_node ${catkin_LIBRARIES} udev)
 target_link_libraries(${PROJECT_NAME}_navigation_node ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_camera_node ${catkin_LIBRARIES} udev)
 
 #############
 ## Install ##
@@ -69,6 +77,7 @@ target_link_libraries(${PROJECT_NAME}_navigation_node ${catkin_LIBRARIES})
 install(TARGETS
   ${PROJECT_NAME}_telemetry_node
   ${PROJECT_NAME}_navigation_node
+  ${PROJECT_NAME}_camera_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

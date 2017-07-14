@@ -4,7 +4,9 @@
 
 #include "Analog.h"
 
-IIOAnalogInterface::IIOAnalogInterface(const std::string& dev)
+IIOAnalogInterface::IIOAnalogInterface(const std::string& dev,
+                                       std::function<void(const uint16_t*)> updateFunc)
+: m_updateFunc(updateFunc)
 {
     if (dev.empty())
         return;
@@ -18,10 +20,8 @@ IIOAnalogInterface::IIOAnalogInterface(const std::string& dev)
 
         while (m_running) {
             uint16_t values[8];
-            if (read(fd, values, 16) == 16) {
-                std::lock_guard<std::mutex> lk(m_mutex);
-                memcpy(m_values, values, 16);
-            }
+            if (read(fd, values, 16) == 16)
+                m_updateFunc(values);
         }
 
         close(fd);
@@ -36,14 +36,6 @@ IIOAnalogInterface::~IIOAnalogInterface()
         pthread_kill(m_thread.native_handle(), SIGUSR1);
         m_thread.join();
     }
-}
-
-uint16_t IIOAnalogInterface::GetChannelValue(int chan)
-{
-    if (chan > 7)
-        return 0;
-    std::lock_guard<std::mutex> lk(m_mutex);
-    return m_values[chan];
 }
 
 float read_voltage(const uint16_t analog_reading, const float r1, const float r2) {

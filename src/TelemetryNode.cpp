@@ -2,6 +2,7 @@
 #include <std_srvs/Empty.h>
 #include <helelani_common/Imu.h>
 #include <helelani_common/Motors.h>
+#include <helelani_common/Analog.h>
 #include <sensor_msgs/Imu.h>
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -29,7 +30,9 @@ static void SigUsrHandler(int) {}
 
 class RoverTelemetry
 {
-    IIOAnalogInterface& m_lowerAnalog;
+    std::mutex m_gyroLock;
+    std::thread m_gyroThread;
+
     AdxlDriver m_adxl;
     L3G m_gyro;
     Hmc5883lDriver m_mag;
@@ -42,10 +45,10 @@ class RoverTelemetry
     ros::Publisher m_rosimuPub;
     ros::Publisher m_imuPub;
     ros::Publisher m_motorPub;
+    ros::Publisher m_analogPub;
     ros::ServiceServer m_recalibrateSrv;
+    IIOAnalogInterface m_lowerAnalog;
 
-    std::mutex m_gyroLock;
-    std::thread m_gyroThread;
     bool m_running = true;
 
 public:
@@ -54,10 +57,9 @@ public:
                    I2CInterface& upperGyroIntf,
                    I2CInterface& upperMagIntf,
                    I2CInterface& upperBmp,
-                   IIOAnalogInterface& lowerAnalog,
+                   const std::string& lowerAnalog,
                    int gpioBase)
-    : m_lowerAnalog(lowerAnalog),
-      m_adxl(upperAxdlIntf),
+    : m_adxl(upperAxdlIntf),
       m_gyro(upperGyroIntf),
       m_mag(upperMagIntf),
       m_bmp(upperBmp),
@@ -67,8 +69,11 @@ public:
       m_rosimuPub(n.advertise<sensor_msgs::Imu>("/helelani/rosimu", 1000)),
       m_imuPub(n.advertise<helelani_common::Imu>("/helelani/imu", 1000)),
       m_motorPub(n.advertise<helelani_common::Motors>("/helelani/motors", 1000)),
+      m_analogPub(n.advertise<helelani_common::Analog>("/helelani/analog", 1000)),
       m_recalibrateSrv(n.advertiseService("/helelani/recalibrate",
-                                          &RoverTelemetry::recalibrate, this))
+                                          &RoverTelemetry::recalibrate, this)),
+      m_lowerAnalog(lowerAnalog, std::bind(&RoverTelemetry::updateAnalog,
+                                           this, std::placeholders::_1))
     {
         m_adxl.initialize();
         m_adxl.setOffsetZ(7);
@@ -92,6 +97,8 @@ public:
 
             double accelPitch = 0.0;
             double accelRoll = 0.0;
+            double oldYaw = 0.0;
+            double yawPeriod = 0.0;
             double magYaw = 0.0;
 
             double finalRoll = 0.0;
@@ -103,8 +110,7 @@ public:
             while (m_running)
             {
                 // Accelerometer (pitch/roll)
-                bool ready = m_adxl.getIntDataReadySource();
-                if (ready)
+                if (m_adxl.getIntDataReadySource())
                 {
                     int16_t accelX, accelY, accelZ;
                     m_adxl.getAcceleration(&accelX, &accelY, &accelZ);
@@ -124,17 +130,29 @@ public:
                 }
 
                 // Magnetometer (yaw)
-                ready = m_mag.getReadyStatus();
-                if (ready)
+                if (m_mag.getReadyStatus())
                 {
                     int16_t headingX, headingY, headingZ;
                     m_mag.getHeading(&headingX, &headingY, &headingZ);
-                    magYaw = std::atan2(headingY, headingX);
+                    double newYaw = std::atan2(headingY, headingX);
+                    if (newYaw >= 0.0 && oldYaw < 0.0)
+                    {
+                        // Correct neg-to-pos discontinuity
+                        if (newYaw - (M_PI / 2.0) > 0.0 && -oldYaw - (M_PI / 2.0) > 0.0)
+                            yawPeriod -= 2.0 * M_PI;
+                    }
+                    else if (newYaw < 0.0 && oldYaw >= 0.0)
+                    {
+                        // Correct pos-to-neg discontinuity
+                        if (-newYaw - (M_PI / 2.0) > 0.0 && oldYaw - (M_PI / 2.0) > 0.0)
+                            yawPeriod += 2.0 * M_PI;
+                    }
+                    oldYaw = newYaw;
+                    magYaw = newYaw + yawPeriod;
                 }
 
                 // Gyro (pitch/roll/yaw motion)
-                m_gyro.read(ready);
-                if (ready)
+                if (m_gyro.read())
                 {
                     double x = (m_gyro.g.x + GYRO_TARE_X) * 0.00875 * (M_PI / 180.0);
                     double y = (m_gyro.g.y + GYRO_TARE_Y) * 0.00875 * (M_PI / 180.0);
@@ -181,7 +199,23 @@ public:
             m_gyroThread.join();
     }
 
-    bool recalibrate(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+    void updateAnalog(const uint16_t* readings)
+    {
+        helelani_common::Analog msg = {};
+
+        msg.current_12 = readings[0];
+        msg.voltage_12 = readings[1];
+        msg.voltage_48 = readings[3];
+        msg.current_24 = readings[4];
+        msg.temp_l = readings[6];
+        msg.temp_r = readings[2];
+
+        msg.header.stamp = ros::Time::now();
+        m_analogPub.publish(msg);
+    }
+
+    bool recalibrate(std_srvs::Empty::Request& request,
+                     std_srvs::Empty::Response& response)
     {
         return true;
     }
@@ -236,9 +270,9 @@ int main(int argc, char *argv[])
     find_upper_dln(upper_i2c_path);
 
     // Find lower DLN
-    std::string lower_i2c_path, iio_dev;
+    std::string lower_i2c_path, lower_analog;
     int gpio_base = -1;
-    find_lower_dln(lower_i2c_path, iio_dev, gpio_base);
+    find_lower_dln(lower_i2c_path, lower_analog, gpio_base);
 
     // Find GPS
     std::string gps_path;
@@ -246,16 +280,13 @@ int main(int argc, char *argv[])
 
     ROS_INFO("\nUpper I2C: %s\nLower I2C: %s\nLower ADC: %s\nGPS: %s",
              upper_i2c_path.c_str(), lower_i2c_path.c_str(),
-             iio_dev.c_str(), gps_path.c_str());
+             lower_analog.c_str(), gps_path.c_str());
 
     // Open upper I2C
     I2CInterface upper_axdl(upper_i2c_path, ADXL345_DEFAULT_ADDRESS);
     I2CInterface upper_gyro(upper_i2c_path);
     I2CInterface upper_mag(upper_i2c_path, HMC5883L_ADDRESS);
     I2CInterface upper_bmp(upper_i2c_path, BMP085_ADDRESS);
-
-    // Lower analog interface
-    IIOAnalogInterface lower_analog(iio_dev);
 
     // Construct telemetry class
     RoverTelemetry tele(n, upper_axdl, upper_gyro, upper_mag, upper_bmp,

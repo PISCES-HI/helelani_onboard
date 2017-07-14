@@ -170,20 +170,21 @@ uint8_t L3G::readReg(uint8_t reg)
 }
 
 // Reads the 3 gyro channels and stores them in vector g
-void L3G::read(bool& ready)
+bool L3G::read()
 {
-    ready = _handle.readBit(STATUS_REG, 3);
+    bool ready = _handle.readBit(STATUS_REG, 3);
     if (ready)
     {
         uint8_t vals[6];
         if (_handle.readBytes(OUT_X_L | (1 << 7), 6, vals) < 0)
-            return;
+            return false;
 
         // combine high and low bytes
         g.x = (int16_t)(vals[1] << 8 | vals[0]);
         g.y = (int16_t)(vals[3] << 8 | vals[2]);
         g.z = (int16_t)(vals[5] << 8 | vals[4]);
     }
+    return ready;
 }
 
 // Private Methods //////////////////////////////////////////////////////////////
