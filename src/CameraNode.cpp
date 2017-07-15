@@ -26,20 +26,22 @@ public:
     }
     void updatePTZ(const helelani_common::CameraCtrl& message)
     {
-        int duty_cycle = ServoMap(message.situation_pan, 0.0, 180.0,
-                                  PWM_SERVO_MIN, PWM_SERVO_MAX);
+        int duty_cycle;
+        duty_cycle = ServoMap(message.lidar_tilt, 0.0, 180.0,
+                              PWM_SERVO_MIN, PWM_SERVO_MAX);
         m_pwm.set_pin(0, duty_cycle);
+        duty_cycle = ServoMap(message.situation_pan, 0.0, 180.0,
+                              PWM_SERVO_MIN, PWM_SERVO_MAX);
         m_pwm.set_pin(1, duty_cycle);
-        m_pwm.set_pin(2, duty_cycle);
-        m_pwm.set_pin(3, duty_cycle);
-        m_pwm.set_pin(4, duty_cycle);
-        m_pwm.set_pin(5, duty_cycle);
-        m_pwm.set_pin(6, duty_cycle);
-        m_pwm.set_pin(7, duty_cycle);
-        printf("%d\n", duty_cycle);
         duty_cycle = ServoMap(message.situation_tilt, 0.0, 180.0,
                               PWM_SERVO_MIN, PWM_SERVO_MAX);
-        //m_pwm.set_pin(1, duty_cycle);
+        m_pwm.set_pin(2, duty_cycle);
+        duty_cycle = ServoMap(message.stereo_pan, 0.0, 180.0,
+                              PWM_SERVO_MIN, PWM_SERVO_MAX);
+        m_pwm.set_pin(3, duty_cycle);
+        duty_cycle = ServoMap(message.stereo_tilt, 0.0, 180.0,
+                              PWM_SERVO_MIN, PWM_SERVO_MAX);
+        m_pwm.set_pin(4, duty_cycle);
     }
 };
 
