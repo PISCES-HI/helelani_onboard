@@ -5,7 +5,7 @@ project(helelani_onboard)
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
-find_package(catkin REQUIRED COMPONENTS roscpp)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs)
 find_package(Boost REQUIRED COMPONENTS system)
 
 ###################################
@@ -52,7 +52,7 @@ add_executable(${PROJECT_NAME}_camera_node
                src/CameraNode.cpp
                src/DlnFinders.cpp src/DlnFinders.h
                src/PwmDriver.cpp src/PwmDriver.h
-               src/i2c.cpp src/i2c.h)
+               src/i2c.cpp src/i2c.h src/StereoCameraCapture.cpp src/StereoCameraCapture.h)
 
 ## Rename C++ executable without prefix
 set_target_properties(${PROJECT_NAME}_telemetry_node PROPERTIES OUTPUT_NAME telemetry_node PREFIX "")
