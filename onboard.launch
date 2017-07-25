@@ -1,0 +1,18 @@
+<launch>
+    <node name="camera_control" pkg="helelani_onboard" type="camera_node"/>
+    <node name="telemetry" pkg="helelani_onboard" type="telemetry_node"/>
+    <node name="navigation" pkg="helelani_onboard" type="navigation_node"/>
+    <node name="stereo_left_calibrate" pkg="helelani_stereo_processing" type="stereo_calibration" args="left">
+        <remap from="image_in" to="/helelani/stereo_image_left"/>
+        <remap from="image_out" to="/helelani/stereo_image_calib_left"/>
+    </node>
+    <node name="stereo_right_calibrate" pkg="helelani_stereo_processing" type="stereo_calibration" args="right">
+        <remap from="image_in" to="/helelani/stereo_image_right"/>
+        <remap from="image_out" to="/helelani/stereo_image_calib_right"/>
+    </node>
+    <node name="stereo_anaglyph_combine" pkg="helelani_stereo_processing" type="stereo_anaglyph">
+        <remap from="left_image_in" to="/helelani/stereo_image_calib_left"/>
+        <remap from="right_image_in" to="/helelani/stereo_image_calib_right"/>
+        <remap from="image_out" to="/helelani/stereo_image_anaglyph"/>
+    </node>
+</launch>

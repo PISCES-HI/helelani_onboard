@@ -134,7 +134,7 @@ public:
                 {
                     int16_t headingX, headingY, headingZ;
                     m_mag.getHeading(&headingX, &headingY, &headingZ);
-                    double newYaw = std::atan2(headingY, headingX);
+                    double newYaw = std::atan2(headingY, headingX) + 20.f * M_PI / 180.f;
                     if (newYaw >= 0.0 && oldYaw < 0.0)
                     {
                         // Correct neg-to-pos discontinuity
