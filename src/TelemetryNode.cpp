@@ -20,11 +20,12 @@
 #include "CANTelemetry.h"
 #include "GPIODriver.h"
 
-#define GYRO_TARE_X -102.0
-#define GYRO_TARE_Y -458.0
-#define GYRO_TARE_Z -7.0
+#define GYRO_TARE_X (-102.0)
+#define GYRO_TARE_Y (-458.0)
+#define GYRO_TARE_Z (-7.0)
 #define ACCEL_ALPHA 0.5
 #define GYRO_ALPHA 0.5
+#define ANALOG_ALPHA 0.05f
 
 static void SigUsrHandler(int) {}
 
@@ -199,16 +200,25 @@ public:
             m_gyroThread.join();
     }
 
+    // Low Pass Filter
+    float m_analogFiltered[8] = {};
+    float filterAnalogChannel(const uint16_t* readings, int idx)
+    {
+        m_analogFiltered[idx] = readings[idx] * ANALOG_ALPHA +
+                (m_analogFiltered[idx] * (1.f - ANALOG_ALPHA));
+        return m_analogFiltered[idx];
+    }
+
     void updateAnalog(const uint16_t* readings)
     {
         helelani_common::Analog msg = {};
 
-        msg.current_12 = readings[0];
-        msg.voltage_12 = readings[1];
-        msg.voltage_48 = readings[3];
-        msg.current_24 = readings[4];
-        msg.temp_l = readings[6];
-        msg.temp_r = readings[2];
+        msg.current_12 = (filterAnalogChannel(readings, 0) - 84.f) * 840.f / 35000.f;
+        msg.voltage_12 = filterAnalogChannel(readings, 1) * 0.043448f;
+        msg.voltage_48 = filterAnalogChannel(readings, 3) * 0.0678303f;
+        msg.current_24 = (filterAnalogChannel(readings, 4) - 84.f) * 840.f / 35000.f;
+        msg.temp_l = filterAnalogChannel(readings, 6);
+        msg.temp_r = filterAnalogChannel(readings, 2);
 
         msg.header.stamp = ros::Time::now();
         m_analogPub.publish(msg);
@@ -239,8 +249,8 @@ public:
         SCANMotorData leftMotor = m_leftMotor.getData();
         SCANMotorData rightMotor = m_rightMotor.getData();
 
-        bool leftHiGear = m_gpio.readPin(24);
-        bool rightHiGear = m_gpio.readPin(25);
+        bool leftHiGear = m_gpio.readPin(0);
+        bool rightHiGear = m_gpio.readPin(1);
 
         motorsOut.left_current = leftMotor.getCurrent();
         motorsOut.left_speed = leftMotor.getSpeed(leftHiGear);

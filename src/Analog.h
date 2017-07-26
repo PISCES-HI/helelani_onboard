@@ -16,12 +16,7 @@ public:
     ~IIOAnalogInterface();
 };
 
-float read_voltage(const uint16_t analog_reading, const float r1, const float r2);
-float get_48v_voltage(const uint16_t analog_reading);
-float get_12v_e_voltage(const uint16_t analog_reading);
-float get_12v_pl_voltage(const uint16_t analog_reading);
-
-float get_avionics_temperature(const uint16_t analog_reading);
-float get_ambient_temperature(const uint16_t analog_reading);
+double get_avionics_temperature(const double analog_reading);
+double get_ambient_temperature(const double analog_reading);
 
 #endif // ANALOG_H

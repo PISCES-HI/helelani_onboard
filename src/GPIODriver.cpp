@@ -7,28 +7,20 @@
 #include <unistd.h>
 
 GPIODriver::GPIODriver(int base)
-{
-    char path[256];
-    for (int i=0 ; i<8 ; ++i) {
-        // Read pins starting at 24 (to avoid ADC conflicts)
-        snprintf(path, 32, "/sys/class/gpio%d/value", base+24+i);
-        m_fds[i] = open(path, O_RDONLY);
-    }
-}
+: m_base(base)
+{}
 
-GPIODriver::~GPIODriver()
+bool GPIODriver::readPin(int pin) const
 {
-    for (int i=0 ; i<8 ; ++i) {
-        close(m_fds[i]);
-    }
-}
-
-bool GPIODriver::readPin(int pin)
-{
-    char buf[4];
-    if (m_fds[pin]) {
-        if (read(m_fds[pin], buf, 4) > 0)
-            return atoi(buf) != 0;
+    char path[32];
+    snprintf(path, 32, "/sys/class/gpio/gpio%d/value", m_base + 24 + pin);
+    if (int fd = open(path, O_RDONLY))
+    {
+        char buf[4];
+        ssize_t rdSz = read(fd, buf, 4);
+        close(fd);
+        if (rdSz > 0)
+            return buf[0] != '0';
     }
     return false;
 }

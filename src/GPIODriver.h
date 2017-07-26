@@ -3,11 +3,10 @@
 
 class GPIODriver
 {
-    int m_fds[8];
+    int m_base;
 public:
-    GPIODriver(int base);
-    ~GPIODriver();
-    bool readPin(int pin);
+    explicit GPIODriver(int base);
+    bool readPin(int pin) const;
 };
 
 #endif // GPIODRIVER_H
