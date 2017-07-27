@@ -26,6 +26,8 @@
 #define ACCEL_ALPHA 0.5
 #define GYRO_ALPHA 0.5
 #define ANALOG_ALPHA 0.05f
+#define THERM_ALPHA 0.005f
+#define THERM_BOX_ALPHA 0.002f
 
 static void SigUsrHandler(int) {}
 
@@ -208,6 +210,18 @@ public:
                 (m_analogFiltered[idx] * (1.f - ANALOG_ALPHA));
         return m_analogFiltered[idx];
     }
+    float filterAnalogTherm(const uint16_t* readings, int idx)
+    {
+        m_analogFiltered[idx] = readings[idx] * THERM_ALPHA +
+                                (m_analogFiltered[idx] * (1.f - THERM_ALPHA));
+        return m_analogFiltered[idx];
+    }
+    float filterAnalogThermBox(const uint16_t* readings, int idx)
+    {
+        m_analogFiltered[idx] = readings[idx] * THERM_BOX_ALPHA +
+                                (m_analogFiltered[idx] * (1.f - THERM_BOX_ALPHA));
+        return m_analogFiltered[idx];
+    }
 
     void updateAnalog(const uint16_t* readings)
     {
@@ -217,8 +231,9 @@ public:
         msg.voltage_12 = filterAnalogChannel(readings, 1) * 0.043448f;
         msg.voltage_48 = filterAnalogChannel(readings, 3) * 0.0678303f;
         msg.current_24 = (filterAnalogChannel(readings, 4) - 84.f) * 840.f / 35000.f;
-        msg.temp_l = filterAnalogChannel(readings, 6);
-        msg.temp_r = filterAnalogChannel(readings, 2);
+        msg.temp_l = filterAnalogTherm(readings, 6) * 58.5f / 615.f + 12.3f;
+        msg.temp_r = filterAnalogTherm(readings, 2) * 72.f / 620.f + 9.f;
+        msg.temp_box = filterAnalogThermBox(readings, 5) * 66.f / 138.f;
 
         msg.header.stamp = ros::Time::now();
         m_analogPub.publish(msg);
