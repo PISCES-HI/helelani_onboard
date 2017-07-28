@@ -1,4 +1,5 @@
 <launch>
+    <node name="mission_control" pkg="helelani_onboard" type="mission_control_server_node"/>
     <node name="camera_control" pkg="helelani_onboard" type="camera_node"/>
     <node name="telemetry" pkg="helelani_onboard" type="telemetry_node"/>
     <node name="navigation" pkg="helelani_onboard" type="navigation_node"/>

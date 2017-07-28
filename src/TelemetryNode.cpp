@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <helelani_common/Imu.h>
-#include <helelani_common/Motors.h>
+#include <helelani_common/Motor.h>
 #include <helelani_common/Analog.h>
 #include <sensor_msgs/Imu.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -40,19 +40,49 @@ class RoverTelemetry
     L3G m_gyro;
     Hmc5883lDriver m_mag;
     Bmp085Driver m_bmp;
-    CANMotorData m_leftMotor;
-    CANMotorData m_rightMotor;
     GPIODriver m_gpio;
 
     helelani_common::Imu m_imu = {};
     ros::Publisher m_rosimuPub;
     ros::Publisher m_imuPub;
-    ros::Publisher m_motorPub;
+    ros::Publisher m_leftMotorPub;
+    ros::Publisher m_rightMotorPub;
     ros::Publisher m_analogPub;
     ros::ServiceServer m_recalibrateSrv;
     IIOAnalogInterface m_lowerAnalog;
 
+    CANMotorData m_leftMotor;
+    CANMotorData m_rightMotor;
+
     bool m_running = true;
+
+    void _leftMotorCallback(const SCANMotorData& data)
+    {
+        helelani_common::Motor motorOut;
+
+        bool leftHiGear = m_gpio.readPin(0);
+
+        motorOut.current = data.getCurrent();
+        motorOut.speed = data.getSpeed(leftHiGear);
+        motorOut.higear = uint8_t(leftHiGear);
+
+        motorOut.header.stamp = ros::Time::now();
+        m_leftMotorPub.publish(motorOut);
+    }
+
+    void _rightMotorCallback(const SCANMotorData& data)
+    {
+        helelani_common::Motor motorOut;
+
+        bool rightHiGear = m_gpio.readPin(1);
+
+        motorOut.current = data.getCurrent();
+        motorOut.speed = -data.getSpeed(rightHiGear);
+        motorOut.higear = uint8_t(rightHiGear);
+
+        motorOut.header.stamp = ros::Time::now();
+        m_rightMotorPub.publish(motorOut);
+    }
 
 public:
     RoverTelemetry(ros::NodeHandle& n,
@@ -66,17 +96,18 @@ public:
       m_gyro(upperGyroIntf),
       m_mag(upperMagIntf),
       m_bmp(upperBmp),
-      m_leftMotor("canLeft"),
-      m_rightMotor("canRight"),
       m_gpio(gpioBase),
-      m_rosimuPub(n.advertise<sensor_msgs::Imu>("/helelani/rosimu", 1000)),
-      m_imuPub(n.advertise<helelani_common::Imu>("/helelani/imu", 1000)),
-      m_motorPub(n.advertise<helelani_common::Motors>("/helelani/motors", 1000)),
-      m_analogPub(n.advertise<helelani_common::Analog>("/helelani/analog", 1000)),
+      m_rosimuPub(n.advertise<sensor_msgs::Imu>("/helelani/rosimu", 10)),
+      m_imuPub(n.advertise<helelani_common::Imu>("/helelani/imu", 10)),
+      m_leftMotorPub(n.advertise<helelani_common::Motor>("/helelani/left_motor", 10)),
+      m_rightMotorPub(n.advertise<helelani_common::Motor>("/helelani/right_motor", 10)),
+      m_analogPub(n.advertise<helelani_common::Analog>("/helelani/analog", 10)),
       m_recalibrateSrv(n.advertiseService("/helelani/recalibrate",
                                           &RoverTelemetry::recalibrate, this)),
       m_lowerAnalog(lowerAnalog, std::bind(&RoverTelemetry::updateAnalog,
-                                           this, std::placeholders::_1))
+                                           this, std::placeholders::_1)),
+      m_leftMotor("canLeft", std::bind(&RoverTelemetry::_leftMotorCallback, this, std::placeholders::_1)),
+      m_rightMotor("canRight", std::bind(&RoverTelemetry::_rightMotorCallback, this, std::placeholders::_1))
     {
         m_adxl.initialize();
         m_adxl.setOffsetZ(7);
@@ -259,23 +290,6 @@ public:
         std::lock_guard<std::mutex> lk(m_gyroLock);
         m_imu.header.stamp = ros::Time::now();
         m_imuPub.publish(m_imu);
-
-        helelani_common::Motors motorsOut;
-        SCANMotorData leftMotor = m_leftMotor.getData();
-        SCANMotorData rightMotor = m_rightMotor.getData();
-
-        bool leftHiGear = m_gpio.readPin(0);
-        bool rightHiGear = m_gpio.readPin(1);
-
-        motorsOut.left_current = leftMotor.getCurrent();
-        motorsOut.left_speed = leftMotor.getSpeed(leftHiGear);
-        motorsOut.left_higear = uint8_t(leftHiGear);
-        motorsOut.right_current = rightMotor.getCurrent();
-        motorsOut.right_speed = rightMotor.getSpeed(rightHiGear);
-        motorsOut.right_higear = uint8_t(rightHiGear);
-
-        motorsOut.header.stamp = ros::Time::now();
-        m_motorPub.publish(motorsOut);
     }
 };
 

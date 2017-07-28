@@ -8,7 +8,8 @@
 
 static void SigUsrHandler(int) {}
 
-static double ServoMap(double val, double min_a, double max_a, double min_b, double max_b) {
+static double ServoMap(double val, double min_a, double max_a,
+                       double min_b, double max_b) {
     val = std::max(std::min(val, max_a), min_a);
     return ((val - min_a)/(max_a - min_a))*(max_b-min_b) + min_b;
 }

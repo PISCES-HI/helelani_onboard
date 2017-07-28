@@ -8,6 +8,7 @@
 #define GEAR_HI_RATIO (3200.0 / 99.0)
 #define GEAR_LO_RATIO (12800.0 / 99.0)
 #define GEAR_CHAIN_RATIO (800.0 / 99.0)
+#define TWEAK_RATIO 1.25
 
 struct SCANMotorData
 {
@@ -17,21 +18,20 @@ struct SCANMotorData
     int16_t speed;
     float getCurrent() const { return current / 160.f; }
     float getSpeed(bool hiGear) const
-    { return speed / (hiGear ? GEAR_HI_RATIO : GEAR_LO_RATIO) / GEAR_CHAIN_RATIO; }
+    { return speed * TWEAK_RATIO / (hiGear ? GEAR_HI_RATIO : GEAR_LO_RATIO) / GEAR_CHAIN_RATIO; }
 };
 
 class CANMotorData
 {
     int m_socket;
     std::thread m_thread;
-    std::mutex m_mutex;
-    SCANMotorData m_data;
     bool m_running = true;
-    void CommTask(std::string interface);
+    void CommTask(std::string interface,
+                  std::function<void(const SCANMotorData&)> updateFunc);
 public:
-    CANMotorData(const std::string& interface);
+    CANMotorData(const std::string& interface,
+                 const std::function<void(const SCANMotorData&)>& updateFunc);
     ~CANMotorData();
-    SCANMotorData getData();
 };
 
 #endif // CANTELEMETRY_H

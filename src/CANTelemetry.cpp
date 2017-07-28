@@ -8,7 +8,8 @@
 #include <unistd.h>
 #include <signal.h>
 
-void CANMotorData::CommTask(std::string interface)
+void CANMotorData::CommTask(std::string interface,
+                            std::function<void(const SCANMotorData&)> updateFunc)
 {
     struct sockaddr_can addr;
     struct ifreq ifr;
@@ -30,7 +31,7 @@ void CANMotorData::CommTask(std::string interface)
     {
         struct can_frame frame;
 
-        int nbytes = read(m_socket, &frame, sizeof(struct can_frame));
+        ssize_t nbytes = read(m_socket, &frame, sizeof(struct can_frame));
 
         if (nbytes < 0) {
             ROS_ERROR("can raw socket read\n");
@@ -44,23 +45,18 @@ void CANMotorData::CommTask(std::string interface)
         }
 
         if (frame.can_id == 0x290) {
-            std::lock_guard<std::mutex> lk(m_mutex);
-            m_data = *reinterpret_cast<const SCANMotorData*>(frame.data);
+            updateFunc(*reinterpret_cast<const SCANMotorData*>(frame.data));
         }
     }
 
     close(m_socket);
 }
 
-SCANMotorData CANMotorData::getData()
+CANMotorData::CANMotorData(const std::string& interface,
+                           const std::function<void(const SCANMotorData&)>& updateFunc)
 {
-    std::lock_guard<std::mutex> lk(m_mutex);
-    return m_data;
-}
-
-CANMotorData::CANMotorData(const std::string& interface)
-{
-    m_thread = std::thread(std::bind(&CANMotorData::CommTask, this, interface));
+    m_thread = std::thread(std::bind(&CANMotorData::CommTask, this,
+                                     interface, updateFunc));
 }
 
 CANMotorData::~CANMotorData()
