@@ -32,7 +32,7 @@ public:
                                            &MissionControlServer::_startMission, this)),
       m_endMissionSrv(n.advertiseService("/helelani/end_mission",
                                          &MissionControlServer::_endMission, this)),
-      m_missionPub(n.advertise<helelani_common::Mission>("helelani/mission", 10, true))
+      m_missionPub(n.advertise<helelani_common::Mission>("/helelani/mission", 10, true))
     {}
 
     void update(const ros::TimerEvent& e)
