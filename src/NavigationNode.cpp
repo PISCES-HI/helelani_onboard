@@ -3,6 +3,7 @@
 #include <helelani_common/Motor.h>
 #include <helelani_common/Imu.h>
 #include <helelani_common/Throttle.h>
+#include <helelani_common/helelani_common.h>
 #include "PwmDriver.h"
 #include "DlnFinders.h"
 
@@ -16,17 +17,11 @@
 #define BRAKE_PIN 3
 
 #define DEFAULT_THROTTLE 50.f
-#define WHEEL_DIAMETER 0.6f
 
 static float ServoMap(float val, float min_a, float max_a,
                       float min_b, float max_b) {
     val = std::max(std::min(val, max_a), min_a);
     return ((val - min_a)/(max_a - min_a))*(max_b-min_b) + min_b;
-}
-
-static float RotationsToMeters(float rots)
-{
-    return WHEEL_DIAMETER * float(M_PI) * rots;
 }
 
 class NavigationDriver;
@@ -38,26 +33,6 @@ public:
     virtual bool update(NavigationDriver& driver, double dt) = 0;
 };
 
-class WheelOdometer
-{
-    float m_rotationOdo = 0.f;
-    ros::Time m_lastTime;
-public:
-    void integrate(float speed, const ros::Time& time)
-    {
-        if (!m_lastTime.isValid())
-        {
-            m_lastTime = time;
-            return;
-        }
-
-        double dt = (time - m_lastTime).toSec();
-        m_lastTime = time;
-        m_rotationOdo += speed * dt / 60.f;
-    }
-    float getRotationOdo() const { return m_rotationOdo; }
-};
-
 class NavigationDriver
 {
     PwmDriver m_pwm;
@@ -67,9 +42,9 @@ class NavigationDriver
     ros::Subscriber m_throttleSub;
     ros::Subscriber m_leftMotorSub;
     ros::Subscriber m_rightMotorSub;
-    WheelOdometer m_leftWheel;
-    WheelOdometer m_rightWheel;
     ros::Subscriber m_imuSub;
+    float m_leftRotations = 0.f;
+    float m_rightRotations = 0.f;
     double m_imuPitch = 0.0;
     double m_imuYaw = 0.0;
     float m_cachedThrottle = DEFAULT_THROTTLE;
@@ -78,11 +53,11 @@ class NavigationDriver
 
     void _leftMotorCallback(const helelani_common::Motor& msg)
     {
-        m_leftWheel.integrate(msg.speed, msg.header.stamp);
+        m_leftRotations = msg.rotations;
     }
     void _rightMotorCallback(const helelani_common::Motor& msg)
     {
-        m_rightWheel.integrate(msg.speed, msg.header.stamp);
+        m_rightRotations = msg.rotations;
     }
 
     void _imuCallback(const helelani_common::Imu& msg)
@@ -176,8 +151,8 @@ public:
         m_cmds.push_back(std::move(cmd));
     }
 
-    const WheelOdometer& leftWheel() const { return m_leftWheel; }
-    const WheelOdometer& rightWheel() const { return m_rightWheel; }
+    float leftRotations() const { return m_leftRotations; }
+    float rightRotations() const { return m_rightRotations; }
     double imuPitch() const { return m_imuPitch; }
     double imuYaw() const { return m_imuYaw; }
 };
@@ -267,12 +242,12 @@ public:
         {
             if (!m_started)
             {
-                m_initialLeftRotation = driver.leftWheel().getRotationOdo();
-                m_initialRightRotation = driver.rightWheel().getRotationOdo();
+                m_initialLeftRotation = driver.leftRotations();
+                m_initialRightRotation = driver.rightRotations();
                 m_started = true;
             }
-            float totalLeft = std::fabs(driver.leftWheel().getRotationOdo() - m_initialLeftRotation);
-            float totalRight = std::fabs(driver.rightWheel().getRotationOdo() - m_initialRightRotation);
+            float totalLeft = std::fabs(driver.leftRotations() - m_initialLeftRotation);
+            float totalRight = std::fabs(driver.rightRotations() - m_initialRightRotation);
             if (std::min(totalLeft, totalRight) >= m_remVal)
             {
                 stop(driver);
@@ -284,13 +259,13 @@ public:
         {
             if (!m_started)
             {
-                m_initialLeftRotation = driver.leftWheel().getRotationOdo();
-                m_initialRightRotation = driver.rightWheel().getRotationOdo();
+                m_initialLeftRotation = driver.leftRotations();
+                m_initialRightRotation = driver.rightRotations();
                 m_started = true;
             }
-            float totalLeft = std::fabs(driver.leftWheel().getRotationOdo() - m_initialLeftRotation);
-            float totalRight = std::fabs(driver.rightWheel().getRotationOdo() - m_initialRightRotation);
-            if (RotationsToMeters(std::min(totalLeft, totalRight)) >= m_remVal)
+            float totalLeft = std::fabs(driver.leftRotations() - m_initialLeftRotation);
+            float totalRight = std::fabs(driver.rightRotations() - m_initialRightRotation);
+            if (helelani_common::RotationsToMeters(std::min(totalLeft, totalRight)) >= m_remVal)
             {
                 stop(driver);
                 return true;

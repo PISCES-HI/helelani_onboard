@@ -19,6 +19,7 @@
 #include "Bmp085Driver.h"
 #include "CANTelemetry.h"
 #include "GPIODriver.h"
+#include "../../../devel/include/helelani_common/Motor.h"
 
 #define GYRO_TARE_X (-102.0)
 #define GYRO_TARE_Y (-458.0)
@@ -30,6 +31,26 @@
 #define THERM_BOX_ALPHA 0.002f
 
 static void SigUsrHandler(int) {}
+
+class WheelOdometer
+{
+    float m_rotationOdo = 0.f;
+    ros::Time m_lastTime;
+public:
+    void integrate(float speed, const ros::Time& time)
+    {
+        if (!m_lastTime.isValid())
+        {
+            m_lastTime = time;
+            return;
+        }
+
+        double dt = (time - m_lastTime).toSec();
+        m_lastTime = time;
+        m_rotationOdo += speed * dt / 60.f;
+    }
+    float getRotationOdo() const { return m_rotationOdo; }
+};
 
 class RoverTelemetry
 {
@@ -54,6 +75,11 @@ class RoverTelemetry
     CANMotorData m_leftMotor;
     CANMotorData m_rightMotor;
 
+    WheelOdometer m_leftOdometer;
+    WheelOdometer m_leftAbsOdometer;
+    WheelOdometer m_rightOdometer;
+    WheelOdometer m_rightAbsOdometer;
+
     bool m_running = true;
 
     void _leftMotorCallback(const SCANMotorData& data)
@@ -67,6 +93,11 @@ class RoverTelemetry
         motorOut.higear = uint8_t(leftHiGear);
 
         motorOut.header.stamp = ros::Time::now();
+        m_leftOdometer.integrate(motorOut.speed, motorOut.header.stamp);
+        m_leftAbsOdometer.integrate(std::fabs(motorOut.speed), motorOut.header.stamp);
+        motorOut.rotations = m_leftOdometer.getRotationOdo();
+        motorOut.abs_rotations = m_leftAbsOdometer.getRotationOdo();
+
         m_leftMotorPub.publish(motorOut);
     }
 
@@ -81,6 +112,11 @@ class RoverTelemetry
         motorOut.higear = uint8_t(rightHiGear);
 
         motorOut.header.stamp = ros::Time::now();
+        m_rightOdometer.integrate(motorOut.speed, motorOut.header.stamp);
+        m_rightAbsOdometer.integrate(std::fabs(motorOut.speed), motorOut.header.stamp);
+        motorOut.rotations = m_rightOdometer.getRotationOdo();
+        motorOut.abs_rotations = m_rightAbsOdometer.getRotationOdo();
+
         m_rightMotorPub.publish(motorOut);
     }
 
