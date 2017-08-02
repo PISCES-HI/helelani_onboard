@@ -8,8 +8,8 @@
 #include <signal.h>
 
 GPSReader::GPSReader(ros::NodeHandle& n, const std::string& path)
-: m_gpsFixPub(n.advertise<gps_common::GPSFix>("/helelani/gps_fix", 1000)),
-  m_navSatFixPub(n.advertise<sensor_msgs::NavSatFix>("/helelani/nav_sat_fix", 1000))
+: m_gpsFixPub(n.advertise<gps_common::GPSFix>("/helelani/gps_fix", 10)),
+  m_navSatFixPub(n.advertise<sensor_msgs::NavSatFix>("/helelani/nav_sat_fix", 10))
 {
     if (path.empty())
         return;
