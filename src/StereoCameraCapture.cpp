@@ -214,6 +214,14 @@ void StereoCameraCapture::publish()
     }
 }
 
+void StereoCameraCapture::changeExposure(int exposure)
+{
+    struct v4l2_control ctrl;
+    ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    ctrl.value = exposure / 5 + 1;
+    ioctl(m_fd, VIDIOC_S_CTRL, &ctrl);
+}
+
 bool StereoCameraService::captureService(std_srvs::Empty::Request& req,
                                          std_srvs::Empty::Response& resp)
 {
@@ -235,6 +243,12 @@ StereoCameraService::StereoCameraService(ros::NodeHandle& n)
             m_cv.wait(lk);
             if (!m_running)
                 break;
+            if (m_exposureChange)
+            {
+                m_exposureChange = false;
+                m_left.changeExposure(m_exposure);
+                m_right.changeExposure(m_exposure);
+            }
             m_left.publish();
             m_right.publish();
         }

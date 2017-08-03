@@ -40,6 +40,7 @@ public:
 
     bool grab(uint8_t* dataOut);
     void publish();
+    void changeExposure(int exposure);
 };
 
 class StereoCameraService
@@ -50,12 +51,22 @@ class StereoCameraService
     StereoCameraCapture m_left;
     StereoCameraCapture m_right;
     ros::ServiceServer m_srv;
+    int m_exposure = 0;
     bool m_running = true;
+    bool m_exposureChange = false;
     bool captureService(std_srvs::Empty::Request& req,
                         std_srvs::Empty::Response& resp);
 public:
     StereoCameraService(ros::NodeHandle& n);
     ~StereoCameraService();
+    void changeExposure(int exp)
+    {
+        if (exp != m_exposure)
+        {
+            m_exposure = exp;
+            m_exposureChange = true;
+        }
+    }
 };
 
 #endif // STEREOCAMERACAPTURE_H

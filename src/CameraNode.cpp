@@ -24,14 +24,17 @@ class ServoController
     PwmDriver m_pwm;
     ros::Subscriber m_situationSub;
     ros::Subscriber m_stereoSub;
+    StereoCameraService& m_stereoService;
 public:
     ServoController(ros::NodeHandle& n,
-                    I2CInterface& pwmInterface)
+                    I2CInterface& pwmInterface,
+                    StereoCameraService& stereoSrv)
     : m_pwm(pwmInterface),
       m_situationSub(n.subscribe("/helelani/situation_cam_ctrl", 1000,
                                  &ServoController::updateSituation, this)),
       m_stereoSub(n.subscribe("/helelani/stereo_cam_ctrl", 1000,
-                              &ServoController::updateStereo, this))
+                              &ServoController::updateStereo, this)),
+      m_stereoService(stereoSrv)
     {
         m_pwm.begin();
         m_pwm.set_pwm_freq(50);
@@ -57,6 +60,8 @@ public:
         duty_cycle = uint16_t(ServoMap(message.tilt, 0.0, 180.0,
                                        PWM_NEW_SERVO_MIN, PWM_NEW_SERVO_MAX));
         m_pwm.set_pin(4, duty_cycle);
+
+        m_stereoService.changeExposure(message.exposure);
     }
 };
 
@@ -75,11 +80,12 @@ int main(int argc, char *argv[])
     std::string upper_i2c_path;
     find_upper_dln(upper_i2c_path);
 
-    I2CInterface pwmI2C(upper_i2c_path, PWM_ADDR);
-    ServoController servoController(n, pwmI2C);
-
     // Start stereo capture thread and advertise service
-    StereoCameraService m_stereoService(n);
+    StereoCameraService stereoService(n);
+
+    // Start servo controller
+    I2CInterface pwmI2C(upper_i2c_path, PWM_ADDR);
+    ServoController servoController(n, pwmI2C, stereoService);
 
     // Begin update loop
     ros::spin();
