@@ -5,7 +5,7 @@ project(helelani_onboard)
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs helelani_common)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs helelani_common tf)
 find_package(Boost REQUIRED COMPONENTS system)
 
 ###################################

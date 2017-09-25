@@ -44,6 +44,7 @@
   <depend>helelani_common</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
+  <depend>tf</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

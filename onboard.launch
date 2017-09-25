@@ -16,4 +16,5 @@
         <remap from="right_image_in" to="/helelani/stereo_image_calib_right"/>
         <remap from="image_out" to="/helelani/stereo_image_anaglyph"/>
     </node>
+    <include file="$(find sweep_ros)/launch/sweep.launch" />
 </launch>
