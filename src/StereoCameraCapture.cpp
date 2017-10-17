@@ -14,7 +14,7 @@ StereoCameraCapture::StereoCameraCapture(const std::string& path,
     int ret = 0;
 
     if ((m_fd = open(path.c_str(), O_RDWR)) == -1) {
-        ROS_ERROR("ERROR opening V4L interface");
+        ROS_ERROR("ERROR opening V4L interface '%s': %s", path.c_str(), strerror(errno));
         return;
     }
     memset(&m_cap, 0, sizeof(struct v4l2_capability));
