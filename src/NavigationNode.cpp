@@ -4,6 +4,9 @@
 #include <helelani_common/Imu.h>
 #include <helelani_common/Throttle.h>
 #include <helelani_common/helelani_common.h>
+#include <std_msgs/Float32.h>
+#include <chrono>
+#include <thread>
 #include "PwmDriver.h"
 #include "DlnFinders.h"
 
@@ -17,6 +20,44 @@
 #define BRAKE_PIN 3
 
 #define DEFAULT_THROTTLE 50.f
+
+class PersistentValue
+{
+    std::string m_path;
+    double m_value = 0.0;
+    void readValue()
+    {
+        FILE* fp = fopen(m_path.c_str(), "r");
+        if (!fp)
+            return;
+        char str[129];
+        size_t bytesRead = fread(str, 1, 128, fp);
+        fclose(fp);
+        str[bytesRead] = '\0';
+        char* endPtr = str;
+        double val = strtod(str, &endPtr);
+        if (endPtr != str)
+            m_value = val;
+    }
+public:
+    PersistentValue(const char* name, double defaultValue)
+    : m_value(defaultValue)
+    {
+        const char* home = getenv("HOME");
+        m_path = std::string(home) + "/.ros/helelani_" + name;
+        readValue();
+    }
+    void setValue(double value)
+    {
+        m_value = value;
+        FILE* fp = fopen(m_path.c_str(), "w");
+        if (!fp)
+            return;
+        fprintf(fp, "%f", m_value);
+        fclose(fp);
+    }
+    double getValue() const { return m_value; }
+};
 
 static float ServoMap(float val, float min_a, float max_a,
                       float min_b, float max_b) {
@@ -43,11 +84,14 @@ class NavigationDriver
     ros::Subscriber m_leftMotorSub;
     ros::Subscriber m_rightMotorSub;
     ros::Subscriber m_imuSub;
+    ros::Subscriber m_diameterSub;
+    ros::Publisher m_diameterPub;
     float m_leftRotations = 0.f;
     float m_rightRotations = 0.f;
     double m_imuPitch = 0.0;
     double m_imuYaw = 0.0;
     float m_cachedThrottle = DEFAULT_THROTTLE;
+    PersistentValue m_diameter = {"wheel_diameter", DEFAULT_WHEEL_DIAMETER};
     void _cmdCallback(const helelani_common::DriveCommand& cmd);
     void _throttleCallback(const helelani_common::Throttle& cmd);
 
@@ -66,6 +110,11 @@ class NavigationDriver
         m_imuYaw = msg.yaw;
     }
 
+    void _diameterCallback(const std_msgs::Float32& msg)
+    {
+        m_diameter.setValue(msg.data);
+    }
+
 public:
     NavigationDriver(I2CInterface& pwmI2C, ros::NodeHandle& n)
     : m_pwm(pwmI2C),
@@ -74,7 +123,9 @@ public:
       m_throttleSub(n.subscribe("/helelani/throttle", 10, &NavigationDriver::_throttleCallback, this)),
       m_leftMotorSub(n.subscribe("/helelani/left_motor", 10, &NavigationDriver::_leftMotorCallback, this)),
       m_rightMotorSub(n.subscribe("/helelani/right_motor", 10, &NavigationDriver::_rightMotorCallback, this)),
-      m_imuSub(n.subscribe("/helelani/imu", 10, &NavigationDriver::_imuCallback, this))
+      m_imuSub(n.subscribe("/helelani/imu", 10, &NavigationDriver::_imuCallback, this)),
+      m_diameterSub(n.subscribe("/helelani/wheel_diameter", 10, &NavigationDriver::_diameterCallback, this)),
+      m_diameterPub(n.advertise<std_msgs::Float32>("/helelani/wheel_diameter", 10, true))
     {
         m_pwm.begin();
         m_pwm.set_pwm_freq(50);
@@ -83,6 +134,8 @@ public:
         setLMotor(0.f);
         setRMotor(0.f);
         setBrake(true);
+
+        publishWheelDiameter(float(m_diameter.getValue()));
     }
 
     float cachedThrottle(float inThrottle)
@@ -155,6 +208,18 @@ public:
     float rightRotations() const { return m_rightRotations; }
     double imuPitch() const { return m_imuPitch; }
     double imuYaw() const { return m_imuYaw; }
+
+    void publishWheelDiameter(float diameter)
+    {
+        std_msgs::Float32 msg;
+        msg.data = diameter;
+        m_diameterPub.publish(msg);
+    }
+
+    float getWheelDiameter() const
+    {
+        return float(m_diameter.getValue());
+    }
 };
 
 class BrakeAfterDelayCommand : public ICommand
@@ -265,7 +330,8 @@ public:
             }
             float totalLeft = std::fabs(driver.leftRotations() - m_initialLeftRotation);
             float totalRight = std::fabs(driver.rightRotations() - m_initialRightRotation);
-            if (helelani_common::RotationsToMeters(std::min(totalLeft, totalRight)) >= m_remVal)
+            if (helelani_common::RotationsToMeters(driver.getWheelDiameter(),
+                                                   std::min(totalLeft, totalRight)) >= m_remVal)
             {
                 stop(driver);
                 return true;
@@ -489,6 +555,10 @@ void NavigationDriver::_cmdCallback(const helelani_common::DriveCommand& cmd)
     case helelani_common::DriveCommand::CMD_KILL:
         clearAndStop();
         break;
+    case helelani_common::DriveCommand::CMD_CONFIG:
+        if (cmd.config == helelani_common::DriveCommand::CONFIG_DIAMETER)
+            publishWheelDiameter(cmd.value);
+        break;
     default:
         break;
     }
@@ -511,21 +581,28 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "navigation_node");
     ros::NodeHandle n;
 
-    std::string lower_i2c_path, lower_iio_path;
-    int gpio_base;
-    find_lower_dln(lower_i2c_path, lower_iio_path, gpio_base);
-    I2CInterface pwmI2C(lower_i2c_path, PWM_ADDR);
-    if (!pwmI2C)
-        return 1;
+    while (ros::ok())
+    {
+        std::string lower_i2c_path, lower_iio_path;
+        int gpio_base;
+        find_lower_dln(lower_i2c_path, lower_iio_path, gpio_base);
+        I2CInterface pwmI2C(lower_i2c_path, PWM_ADDR);
+        if (!pwmI2C)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
 
-    NavigationDriver driver(pwmI2C, n);
+        NavigationDriver driver(pwmI2C, n);
 
-    // Begin update loop
-    ros::Timer t = n.createTimer(ros::Duration(0.02),
-                                 &NavigationDriver::update, &driver);
-    ros::spin();
+        // Begin update loop
+        ros::Timer t = n.createTimer(ros::Duration(0.02),
+                                     &NavigationDriver::update, &driver);
+        while (ros::ok() && pwmI2C)
+            ros::spinOnce();
 
-    driver.clearAndStop();
+        driver.clearAndStop();
+    }
 
     return 0;
 }

@@ -13,6 +13,7 @@ IIOAnalogInterface::IIOAnalogInterface(const std::string& dev,
     m_thread = std::thread([this, &dev]()
     {
         int fd = open(dev.c_str(), O_RDONLY);
+	printf("Opened %s\n", dev.c_str());
         if (!fd) {
             ROS_ERROR("Unable to open %s", dev.c_str());
             return;
@@ -20,8 +21,11 @@ IIOAnalogInterface::IIOAnalogInterface(const std::string& dev,
 
         while (m_running) {
             uint16_t values[8];
-            if (read(fd, values, 16) == 16)
+            int readSz = read(fd, values, 16);
+	    //printf("Read %d\n", readSz);
+	    if (readSz == 16) {
                 m_updateFunc(values);
+	    }
         }
 
         close(fd);

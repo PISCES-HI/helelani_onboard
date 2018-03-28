@@ -8,13 +8,14 @@ const unsigned int PWM_I2C_ADDR = 0x40;
 
 class I2CInterface
 {
-    int m_fd = 0;
+    int m_fd = -1;
+    void close();
 public:
     I2CInterface(const std::string& path);
     I2CInterface(const std::string& path, int addr)
     : I2CInterface(path) { setAddr(addr); }
     ~I2CInterface();
-    operator bool() const { return m_fd != 0; }
+    operator bool() const { return m_fd != -1; }
     int setAddr(int addr);
     int read(unsigned len, uint8_t* buf) const;
     int write(unsigned len, const uint8_t* buf) const;

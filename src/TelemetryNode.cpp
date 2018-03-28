@@ -340,43 +340,46 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "telemetry_node");
     ros::NodeHandle n;
 
-    // Find upper DLN
-    std::string upper_i2c_path;
-    find_upper_dln(upper_i2c_path);
-
-    // Find lower DLN
-    std::string lower_i2c_path, lower_analog;
-    int gpio_base = -1;
-    find_lower_dln(lower_i2c_path, lower_analog, gpio_base);
-
-    // Find GPS
-    std::string gps_path;
-    find_gps(gps_path);
-
-    ROS_INFO("\nUpper I2C: %s\nLower I2C: %s\nLower ADC: %s\nGPS: %s",
-             upper_i2c_path.c_str(), lower_i2c_path.c_str(),
-             lower_analog.c_str(), gps_path.c_str());
-
-    // Open upper I2C
-    I2CInterface upper_axdl(upper_i2c_path, ADXL345_DEFAULT_ADDRESS);
-    I2CInterface upper_gyro(upper_i2c_path);
-    I2CInterface upper_mag(upper_i2c_path, HMC5883L_ADDRESS);
-    I2CInterface upper_bmp(upper_i2c_path, BMP085_ADDRESS);
-
-    // Construct telemetry class
-    RoverTelemetry tele(n, upper_axdl, upper_gyro, upper_mag, upper_bmp,
-                        lower_analog, gpio_base);
-
-    // Start GPS reader
-    GPSReader gps(n, gps_path);
-
-    // Begin update loop
-    ros::Rate r(50); // 50 hz
     while (ros::ok())
     {
-        tele.update();
-        ros::spinOnce();
-        r.sleep();
+        // Find upper DLN
+        std::string upper_i2c_path;
+        find_upper_dln(upper_i2c_path);
+
+        // Find lower DLN
+        std::string lower_i2c_path, lower_analog;
+        int gpio_base = -1;
+        find_lower_dln(lower_i2c_path, lower_analog, gpio_base);
+
+        // Find GPS
+        std::string gps_path;
+        find_gps(gps_path);
+
+        ROS_INFO("\nUpper I2C: %s\nLower I2C: %s\nLower ADC: %s\nGPS: %s",
+                 upper_i2c_path.c_str(), lower_i2c_path.c_str(),
+                 lower_analog.c_str(), gps_path.c_str());
+
+        // Open upper I2C
+        I2CInterface upper_axdl(upper_i2c_path, ADXL345_DEFAULT_ADDRESS);
+        I2CInterface upper_gyro(upper_i2c_path);
+        I2CInterface upper_mag(upper_i2c_path, HMC5883L_ADDRESS);
+        I2CInterface upper_bmp(upper_i2c_path, BMP085_ADDRESS);
+
+        // Construct telemetry class
+        RoverTelemetry tele(n, upper_axdl, upper_gyro, upper_mag, upper_bmp,
+                            lower_analog, gpio_base);
+
+        // Start GPS reader
+        GPSReader gps(n, gps_path);
+
+        // Begin update loop
+        ros::Rate r(50); // 50 hz
+        while (ros::ok() && upper_axdl && upper_gyro && upper_mag && upper_bmp)
+        {
+            tele.update();
+            ros::spinOnce();
+            r.sleep();
+        }
     }
 
     return 0;

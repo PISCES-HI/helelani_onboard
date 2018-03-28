@@ -11,36 +11,60 @@
 void CANMotorData::CommTask(std::string interface,
                             std::function<void(const SCANMotorData&)> updateFunc)
 {
-    struct sockaddr_can addr;
-    struct ifreq ifr;
+    auto doBind = [&interface]()
+    {
+        struct sockaddr_can addr;
+        struct ifreq ifr;
 
-    m_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+        int sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+        if (sock == -1)
+            return -1;
 
-    strcpy(ifr.ifr_name, interface.c_str());
-    ioctl(m_socket, SIOCGIFINDEX, &ifr);
+        strcpy(ifr.ifr_name, interface.c_str());
+        if (ioctl(sock, SIOCGIFINDEX, &ifr))
+        {
+            ROS_ERROR("Unable to SIOCGIFINDEX %s: %s\n", ifr.ifr_name, strerror(errno));
+            close(sock);
+            return -1;
+        }
 
-    addr.can_family = AF_CAN;
-    addr.can_ifindex = ifr.ifr_ifindex;
+        addr.can_family = AF_CAN;
+        addr.can_ifindex = ifr.ifr_ifindex;
 
-    if (bind(m_socket, (struct sockaddr *)&addr, sizeof(addr))) {
-        fprintf(stderr, "Unable to bind %s\n", strerror(errno));
-        m_running = false;
-    }
+        if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)))
+        {
+            ROS_ERROR("Unable to bind %s: %s\n", ifr.ifr_name, strerror(errno));
+            close(sock);
+            return -1;
+        }
+        else
+        {
+            ROS_INFO("Bound %s\n", ifr.ifr_name);
+            return sock;
+        }
+    };
+    int sock = doBind();
 
     while (m_running)
     {
         struct can_frame frame;
 
-        ssize_t nbytes = read(m_socket, &frame, sizeof(struct can_frame));
+        ssize_t nbytes = -1;
+        if (sock != -1)
+            nbytes = read(sock, &frame, sizeof(struct can_frame));
 
         if (nbytes < 0) {
-            ROS_ERROR("can raw socket read\n");
+            ROS_ERROR("%d can raw socket %s read error %s\n", sock, interface.c_str(), strerror(errno));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            if (sock != -1)
+                close(sock);
+            sock = doBind();
             continue;
         }
 
         /* paranoid check ... */
         if (nbytes < sizeof(struct can_frame)) {
-            ROS_ERROR("read: incomplete CAN frame");
+            ROS_ERROR("read %s: incomplete CAN frame", interface.c_str());
             continue;
         }
 
@@ -49,7 +73,8 @@ void CANMotorData::CommTask(std::string interface,
         }
     }
 
-    close(m_socket);
+    if (sock != -1)
+        close(sock);
 }
 
 CANMotorData::CANMotorData(const std::string& interface,

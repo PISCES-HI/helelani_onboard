@@ -23,7 +23,6 @@ struct SCANMotorData
 
 class CANMotorData
 {
-    int m_socket;
     std::thread m_thread;
     bool m_running = true;
     void CommTask(std::string interface,
